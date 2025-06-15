@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -18,6 +19,7 @@ interface Transformation {
   transformed_content: string;
   provider: string;
   model_used: string;
+  user_id: string;
   created_at: string;
 }
 
@@ -60,6 +62,7 @@ export const usePromptHistory = () => {
   const savePrompt = async (content: string, framework: string, model: string): Promise<Prompt | null> => {
     try {
       console.log("Saving prompt:", { content: content.substring(0, 50), framework, model });
+
       const title = content.length > 50 ? content.substring(0, 50) + '...' : content;
 
       const { data, error } = await supabase
@@ -73,17 +76,20 @@ export const usePromptHistory = () => {
             model,
           },
         ])
-        .select()
-        .single();
+        .select();
 
       if (error) {
         console.error('Error saving prompt:', error);
         return null;
       }
-      console.log("Prompt saved:", data);
+      if (!data || !Array.isArray(data) || data.length === 0) {
+        console.error('No prompt data returned after insert', { data });
+        return null;
+      }
+      console.log("Prompt saved:", data[0]);
 
       await loadPrompts();
-      return data;
+      return data[0];
     } catch (error) {
       console.error('Exception in savePrompt:', error);
       return null;
@@ -109,18 +115,18 @@ export const usePromptHistory = () => {
             user_id: GLOBAL_USER_ID,
           },
         ])
-        .select()
-        .single();
-
+        .select();
       if (error) {
         console.error('Error saving transformation:', error);
         return null;
       }
-
-      console.log("Transformation saved:", data);
-
+      if (!data || !Array.isArray(data) || data.length === 0) {
+        console.error('No transformation data returned after insert', { data });
+        return null;
+      }
+      console.log("Transformation saved:", data[0]);
       await loadPrompts();
-      return data;
+      return data[0];
     } catch (error) {
       console.error('Exception in saveTransformation:', error);
       return null;
