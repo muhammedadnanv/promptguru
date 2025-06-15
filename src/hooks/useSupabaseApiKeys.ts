@@ -1,6 +1,5 @@
 
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 
 interface APIKeys {
@@ -10,7 +9,6 @@ interface APIKeys {
 }
 
 export const useSupabaseApiKeys = () => {
-  const { user } = useAuth();
   const [apiKeys, setApiKeys] = useState<APIKeys>({ openai: '', anthropic: '', google: '' });
   const [loading, setLoading] = useState(false);
 
@@ -27,15 +25,16 @@ export const useSupabaseApiKeys = () => {
     }
   };
 
-  const loadApiKeys = async () => {
-    if (!user) return;
+  // Demo Mode: Share API keys globally (no user)
+  const globalId = 'global_public_keys';
 
+  const loadApiKeys = async () => {
     setLoading(true);
     try {
       const { data, error } = await supabase
         .from('user_api_keys')
         .select('provider, encrypted_key')
-        .eq('user_id', user.id)
+        .eq('user_id', globalId)
         .eq('is_active', true);
 
       if (error) throw error;
@@ -56,22 +55,18 @@ export const useSupabaseApiKeys = () => {
   };
 
   const saveApiKey = async (provider: keyof APIKeys, key: string) => {
-    if (!user) return;
-
     try {
       const encryptedKey = encrypt(key);
-      
       const { error } = await supabase
         .from('user_api_keys')
         .upsert({
-          user_id: user.id,
+          user_id: globalId,
           provider,
           encrypted_key: encryptedKey,
           is_active: true
         });
 
       if (error) throw error;
-
       setApiKeys(prev => ({ ...prev, [provider]: key }));
       return { success: true };
     } catch (error) {
@@ -81,17 +76,14 @@ export const useSupabaseApiKeys = () => {
   };
 
   const deleteApiKey = async (provider: keyof APIKeys) => {
-    if (!user) return;
-
     try {
       const { error } = await supabase
         .from('user_api_keys')
         .delete()
-        .eq('user_id', user.id)
+        .eq('user_id', globalId)
         .eq('provider', provider);
 
       if (error) throw error;
-
       setApiKeys(prev => ({ ...prev, [provider]: '' }));
       return { success: true };
     } catch (error) {
@@ -101,12 +93,9 @@ export const useSupabaseApiKeys = () => {
   };
 
   useEffect(() => {
-    if (user) {
-      loadApiKeys();
-    } else {
-      setApiKeys({ openai: '', anthropic: '', google: '' });
-    }
-  }, [user]);
+    loadApiKeys();
+    // eslint-disable-next-line
+  }, []);
 
   return {
     apiKeys,

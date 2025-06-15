@@ -1,6 +1,5 @@
 
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 
 interface Prompt {
@@ -22,14 +21,14 @@ interface Transformation {
   created_at: string;
 }
 
+// Demo Mode: All prompts are global (not per-user)
+const globalId = 'global_public_user';
+
 export const usePromptHistory = () => {
-  const { user } = useAuth();
   const [prompts, setPrompts] = useState<Prompt[]>([]);
   const [loading, setLoading] = useState(false);
 
   const loadPrompts = async () => {
-    if (!user) return;
-
     setLoading(true);
     try {
       const { data, error } = await supabase
@@ -38,7 +37,7 @@ export const usePromptHistory = () => {
           *,
           transformations (*)
         `)
-        .eq('user_id', user.id)
+        .eq('user_id', globalId)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -57,13 +56,11 @@ export const usePromptHistory = () => {
     model: string,
     title?: string
   ) => {
-    if (!user) return null;
-
     try {
       const { data, error } = await supabase
         .from('prompts')
         .insert({
-          user_id: user.id,
+          user_id: globalId,
           content,
           framework,
           model,
@@ -88,14 +85,12 @@ export const usePromptHistory = () => {
     modelUsed: string,
     processingTime?: number
   ) => {
-    if (!user) return null;
-
     try {
       const { data, error } = await supabase
         .from('transformations')
         .insert({
           prompt_id: promptId,
-          user_id: user.id,
+          user_id: globalId,
           transformed_content: transformedContent,
           provider,
           model_used: modelUsed,
@@ -108,7 +103,7 @@ export const usePromptHistory = () => {
 
       // Refresh prompts to include the new transformation
       loadPrompts();
-      
+
       return data;
     } catch (error) {
       console.error('Error saving transformation:', error);
@@ -117,14 +112,12 @@ export const usePromptHistory = () => {
   };
 
   const deletePrompt = async (promptId: string) => {
-    if (!user) return;
-
     try {
       const { error } = await supabase
         .from('prompts')
         .delete()
         .eq('id', promptId)
-        .eq('user_id', user.id);
+        .eq('user_id', globalId);
 
       if (error) throw error;
 
@@ -135,12 +128,9 @@ export const usePromptHistory = () => {
   };
 
   useEffect(() => {
-    if (user) {
-      loadPrompts();
-    } else {
-      setPrompts([]);
-    }
-  }, [user]);
+    loadPrompts();
+    // eslint-disable-next-line
+  }, []);
 
   return {
     prompts,
@@ -151,3 +141,4 @@ export const usePromptHistory = () => {
     refreshPrompts: loadPrompts
   };
 };
+
