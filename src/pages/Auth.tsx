@@ -10,6 +10,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Loader2, ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import WhatsAppWidget from '@/components/WhatsAppWidget';
 
 const Auth = () => {
   const [email, setEmail] = useState('');
@@ -179,6 +180,9 @@ const Auth = () => {
           )}
         </Card>
       </div>
+
+      {/* WhatsApp Widget */}
+      <WhatsAppWidget />
     </div>
   );
 };

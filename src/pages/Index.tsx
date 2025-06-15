@@ -10,6 +10,7 @@ import AIModelSelector from "../components/AIModelSelector";
 import PromptTransformer from "../components/PromptTransformer";
 import APIKeyManager from "../components/APIKeyManager";
 import UserMenu from "../components/UserMenu";
+import WhatsAppWidget from "../components/WhatsAppWidget";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -281,6 +282,9 @@ const Index = () => {
           </Tabs>
         </main>
       </div>
+
+      {/* WhatsApp Widget */}
+      <WhatsAppWidget />
     </div>
   );
 };
