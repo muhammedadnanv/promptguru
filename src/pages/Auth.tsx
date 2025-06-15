@@ -60,55 +60,55 @@ const Auth = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <div className="mb-8 text-center">
+        <div className="mb-6 md:mb-8 text-center">
           <Link 
             to="/" 
-            className="inline-flex items-center text-gray-300 hover:text-white transition-colors mb-6"
+            className="inline-flex items-center text-gray-300 hover:text-white transition-colors mb-4 md:mb-6"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Home
           </Link>
-          <h1 className="text-3xl font-bold text-white mb-2">Welcome</h1>
-          <p className="text-gray-300">Sign in to access your prompt transformations</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">Welcome</h1>
+          <p className="text-gray-300 text-sm md:text-base">Sign in to access your prompt transformations</p>
         </div>
 
-        <Card className="p-6 bg-white/10 backdrop-blur-lg border-white/20">
+        <Card className="p-4 md:p-6 bg-white/10 backdrop-blur-lg border-white/20">
           <Tabs defaultValue="signin">
-            <TabsList className="grid w-full grid-cols-2 mb-6">
-              <TabsTrigger value="signin">Sign In</TabsTrigger>
-              <TabsTrigger value="signup">Sign Up</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 mb-4 md:mb-6">
+              <TabsTrigger value="signin" className="text-sm">Sign In</TabsTrigger>
+              <TabsTrigger value="signup" className="text-sm">Sign Up</TabsTrigger>
             </TabsList>
 
             <TabsContent value="signin">
               <form onSubmit={handleSignIn} className="space-y-4">
                 <div>
-                  <Label htmlFor="signin-email" className="text-white">Email</Label>
+                  <Label htmlFor="signin-email" className="text-white text-sm">Email</Label>
                   <Input
                     id="signin-email"
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    className="bg-white/5 border-white/20 text-white"
+                    className="bg-white/5 border-white/20 text-white mt-1"
                     placeholder="Enter your email"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="signin-password" className="text-white">Password</Label>
+                  <Label htmlFor="signin-password" className="text-white text-sm">Password</Label>
                   <Input
                     id="signin-password"
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="bg-white/5 border-white/20 text-white"
+                    className="bg-white/5 border-white/20 text-white mt-1"
                     placeholder="Enter your password"
                   />
                 </div>
                 <Button 
                   type="submit" 
                   disabled={loading} 
-                  className="w-full"
+                  className="w-full text-sm md:text-base"
                 >
                   {loading ? (
                     <>
@@ -125,33 +125,33 @@ const Auth = () => {
             <TabsContent value="signup">
               <form onSubmit={handleSignUp} className="space-y-4">
                 <div>
-                  <Label htmlFor="signup-email" className="text-white">Email</Label>
+                  <Label htmlFor="signup-email" className="text-white text-sm">Email</Label>
                   <Input
                     id="signup-email"
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    className="bg-white/5 border-white/20 text-white"
+                    className="bg-white/5 border-white/20 text-white mt-1"
                     placeholder="Enter your email"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="signup-password" className="text-white">Password</Label>
+                  <Label htmlFor="signup-password" className="text-white text-sm">Password</Label>
                   <Input
                     id="signup-password"
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="bg-white/5 border-white/20 text-white"
+                    className="bg-white/5 border-white/20 text-white mt-1"
                     placeholder="Create a password"
                   />
                 </div>
                 <Button 
                   type="submit" 
                   disabled={loading} 
-                  className="w-full"
+                  className="w-full text-sm md:text-base"
                 >
                   {loading ? (
                     <>
@@ -168,13 +168,13 @@ const Auth = () => {
 
           {error && (
             <Alert className="mt-4 bg-red-500/20 border-red-500/50">
-              <AlertDescription className="text-red-200">{error}</AlertDescription>
+              <AlertDescription className="text-red-200 text-sm">{error}</AlertDescription>
             </Alert>
           )}
 
           {message && (
             <Alert className="mt-4 bg-green-500/20 border-green-500/50">
-              <AlertDescription className="text-green-200">{message}</AlertDescription>
+              <AlertDescription className="text-green-200 text-sm">{message}</AlertDescription>
             </Alert>
           )}
         </Card>

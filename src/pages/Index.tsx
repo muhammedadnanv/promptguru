@@ -74,69 +74,71 @@ const Index = () => {
       
       <div className="relative z-10">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex justify-between items-center mb-8">
+          <div className="flex justify-between items-center mb-4 md:mb-8">
             <Header />
             <UserMenu />
           </div>
         </div>
         
-        <main className="container mx-auto px-4 py-8 max-w-6xl">
-          <div className="text-center mb-12">
-            <h1 className="text-5xl md:text-6xl font-bold text-white mb-6 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+        <main className="container mx-auto px-4 py-4 md:py-8 max-w-6xl">
+          <div className="text-center mb-8 md:mb-12">
+            <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold text-white mb-4 md:mb-6 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
               Transform Ideas into Perfect Prompts
             </h1>
-            <p className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
+            <p className="text-lg md:text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed px-4">
               Use advanced prompt frameworks and real AI APIs to turn your casual thoughts and voice notes into 
               structured, optimized prompts that get better AI results.
             </p>
           </div>
 
           <Tabs defaultValue="workspace" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 mb-8">
-              <TabsTrigger value="workspace" className="relative">
-                Workspace
+            <TabsList className="grid w-full grid-cols-3 mb-6 md:mb-8">
+              <TabsTrigger value="workspace" className="relative text-xs md:text-sm">
+                <span className="hidden sm:inline">Workspace</span>
+                <span className="sm:hidden">Work</span>
                 {!isAPIKeyConfigured() && (
-                  <AlertCircle className="w-4 h-4 ml-2 text-yellow-400" />
+                  <AlertCircle className="w-3 h-3 md:w-4 md:h-4 ml-1 md:ml-2 text-yellow-400" />
                 )}
               </TabsTrigger>
-              <TabsTrigger value="settings" className="relative">
-                API Settings
+              <TabsTrigger value="settings" className="relative text-xs md:text-sm">
+                <span className="hidden sm:inline">API Settings</span>
+                <span className="sm:hidden">API</span>
                 <Badge 
                   variant={getConfiguredKeysCount() > 0 ? "default" : "destructive"}
-                  className="ml-2 text-xs"
+                  className="ml-1 md:ml-2 text-xs"
                 >
                   {getConfiguredKeysCount()}/3
                 </Badge>
               </TabsTrigger>
-              <TabsTrigger value="history" className="relative">
-                <History className="w-4 h-4 mr-2" />
-                History
-                <Badge variant="secondary" className="ml-2 text-xs">
+              <TabsTrigger value="history" className="relative text-xs md:text-sm">
+                <History className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />
+                <span className="hidden sm:inline">History</span>
+                <Badge variant="secondary" className="ml-1 md:ml-2 text-xs">
                   {prompts.length}
                 </Badge>
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="workspace" className="space-y-8">
+            <TabsContent value="workspace" className="space-y-6 md:space-y-8">
               {!isAPIKeyConfigured() && (
                 <Card className="p-4 bg-yellow-500/10 border-yellow-500/20">
                   <div className="flex items-center space-x-2">
-                    <AlertCircle className="w-5 h-5 text-yellow-400" />
-                    <p className="text-yellow-300">
+                    <AlertCircle className="w-4 h-4 md:w-5 md:h-5 text-yellow-400 flex-shrink-0" />
+                    <p className="text-yellow-300 text-sm md:text-base">
                       Configure your API key in the <strong>API Settings</strong> tab to start transforming prompts.
                     </p>
                   </div>
                 </Card>
               )}
 
-              <div className="grid lg:grid-cols-2 gap-8">
+              <div className="grid lg:grid-cols-2 gap-6 md:gap-8">
                 {/* Input Section */}
-                <Card className="p-6 bg-white/10 backdrop-blur-lg border-white/20 shadow-2xl">
-                  <h2 className="text-2xl font-semibold text-white mb-6">Input Your Idea</h2>
+                <Card className="p-4 md:p-6 bg-white/10 backdrop-blur-lg border-white/20 shadow-2xl">
+                  <h2 className="text-xl md:text-2xl font-semibold text-white mb-4 md:mb-6">Input Your Idea</h2>
                   
                   <VoiceRecorder onTranscript={setInputText} />
                   
-                  <div className="mt-6">
+                  <div className="mt-4 md:mt-6">
                     <label className="block text-sm font-medium text-gray-300 mb-2">
                       Or type your casual idea:
                     </label>
@@ -144,7 +146,7 @@ const Index = () => {
                       value={inputText}
                       onChange={(e) => setInputText(e.target.value)}
                       placeholder="e.g., I want to write a blog post about sustainable gardening but make it engaging for beginners..."
-                      className="w-full h-32 p-4 bg-white/5 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
+                      className="w-full h-32 md:h-32 p-3 md:p-4 bg-white/5 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none text-sm md:text-base"
                     />
                     <p className="text-xs text-gray-400 mt-2">
                       {inputText.length} characters
@@ -153,10 +155,10 @@ const Index = () => {
                 </Card>
 
                 {/* Configuration Section */}
-                <Card className="p-6 bg-white/10 backdrop-blur-lg border-white/20 shadow-2xl">
-                  <h2 className="text-2xl font-semibold text-white mb-6">Configuration</h2>
+                <Card className="p-4 md:p-6 bg-white/10 backdrop-blur-lg border-white/20 shadow-2xl">
+                  <h2 className="text-xl md:text-2xl font-semibold text-white mb-4 md:mb-6">Configuration</h2>
                   
-                  <div className="space-y-6">
+                  <div className="space-y-4 md:space-y-6">
                     <PromptFrameworkSelector 
                       selected={selectedFramework}
                       onSelect={setSelectedFramework}
@@ -169,7 +171,7 @@ const Index = () => {
 
                     {isAPIKeyConfigured() && (
                       <div className="flex items-center space-x-2 text-green-400">
-                        <CheckCircle className="w-4 h-4" />
+                        <CheckCircle className="w-4 h-4 flex-shrink-0" />
                         <span className="text-sm">API key configured for {getModelProvider(selectedModel)}</span>
                       </div>
                     )}
@@ -196,24 +198,24 @@ const Index = () => {
                   onDeleteKey={deleteApiKey}
                 />
                 
-                <Card className="mt-6 p-6 bg-white/5 backdrop-blur-lg border-white/10">
+                <Card className="mt-6 p-4 md:p-6 bg-white/5 backdrop-blur-lg border-white/10">
                   <h3 className="text-lg font-semibold text-white mb-4">How to get API Keys:</h3>
                   <div className="space-y-3 text-sm text-gray-300">
                     <div>
                       <strong className="text-white">OpenAI:</strong> Visit{" "}
-                      <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">
+                      <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline break-all">
                         platform.openai.com/api-keys
                       </a>
                     </div>
                     <div>
                       <strong className="text-white">Anthropic (Claude):</strong> Visit{" "}
-                      <a href="https://console.anthropic.com/" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">
+                      <a href="https://console.anthropic.com/" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline break-all">
                         console.anthropic.com
                       </a>
                     </div>
                     <div>
                       <strong className="text-white">Google (Gemini):</strong> Visit{" "}
-                      <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">
+                      <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline break-all">
                         aistudio.google.com/app/apikey
                       </a>
                     </div>
@@ -224,22 +226,22 @@ const Index = () => {
 
             <TabsContent value="history">
               <div className="max-w-4xl mx-auto">
-                <h2 className="text-2xl font-semibold text-white mb-6">Your Prompt History</h2>
+                <h2 className="text-xl md:text-2xl font-semibold text-white mb-4 md:mb-6">Your Prompt History</h2>
                 
                 {prompts.length === 0 ? (
-                  <Card className="p-8 bg-white/5 backdrop-blur-lg border-white/10 text-center">
-                    <History className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <Card className="p-6 md:p-8 bg-white/5 backdrop-blur-lg border-white/10 text-center">
+                    <History className="w-10 h-10 md:w-12 md:h-12 text-gray-400 mx-auto mb-4" />
                     <p className="text-gray-300 text-lg">No prompts yet</p>
                     <p className="text-gray-400">Your transformed prompts will appear here</p>
                   </Card>
                 ) : (
                   <div className="space-y-4">
                     {prompts.map((prompt) => (
-                      <Card key={prompt.id} className="p-6 bg-white/5 backdrop-blur-lg border-white/10">
-                        <div className="flex justify-between items-start mb-4">
-                          <div>
+                      <Card key={prompt.id} className="p-4 md:p-6 bg-white/5 backdrop-blur-lg border-white/10">
+                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-4 space-y-2 sm:space-y-0">
+                          <div className="flex-1">
                             <h3 className="text-lg font-semibold text-white">{prompt.title}</h3>
-                            <div className="flex items-center space-x-4 text-sm text-gray-400 mt-1">
+                            <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-sm text-gray-400 mt-1">
                               <span>{prompt.framework} framework</span>
                               <span>{prompt.model}</span>
                               <span>{new Date(prompt.created_at).toLocaleDateString()}</span>
@@ -249,7 +251,7 @@ const Index = () => {
                             variant="ghost"
                             size="sm"
                             onClick={() => deletePrompt(prompt.id)}
-                            className="text-red-400 hover:text-red-300"
+                            className="text-red-400 hover:text-red-300 self-start sm:self-auto"
                           >
                             Delete
                           </Button>
@@ -258,13 +260,13 @@ const Index = () => {
                         <div className="space-y-4">
                           <div>
                             <h4 className="text-sm font-medium text-gray-300 mb-2">Original Input:</h4>
-                            <p className="text-gray-200 text-sm bg-white/5 p-3 rounded">{prompt.content}</p>
+                            <p className="text-gray-200 text-sm bg-white/5 p-3 rounded break-words">{prompt.content}</p>
                           </div>
                           
                           {prompt.transformations && prompt.transformations.length > 0 && (
                             <div>
                               <h4 className="text-sm font-medium text-gray-300 mb-2">Transformed Prompt:</h4>
-                              <p className="text-gray-200 text-sm bg-white/5 p-3 rounded">
+                              <p className="text-gray-200 text-sm bg-white/5 p-3 rounded break-words">
                                 {prompt.transformations[0].transformed_content}
                               </p>
                             </div>
