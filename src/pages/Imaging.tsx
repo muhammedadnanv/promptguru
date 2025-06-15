@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Card } from "@/components/ui/card";
-import { Image as ImageIcon, Loader } from "lucide-react";
+import { Image as ImageIcon, Loader, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Link } from "react-router-dom";
@@ -20,6 +20,23 @@ const Imaging = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hfApiKey, setHfApiKey] = useState(getHuggingFaceKey());
+
+  // Helper for downloading an image
+  const handleDownloadImage = () => {
+    if (!imageUrl) return;
+    // Create a link and trigger download
+    const link = document.createElement("a");
+    link.href = imageUrl;
+    // Guess the extension from data-url or default to png
+    const ext = imageUrl.startsWith("data:image/jpeg") ? "jpg"
+      : imageUrl.startsWith("data:image/webp") ? "webp"
+      : imageUrl.startsWith("data:image/png") ? "png"
+      : "png";
+    link.download = `ai-image.${ext}`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   const handleGenerateImage = async () => {
     setLoading(true);
@@ -246,13 +263,22 @@ const Imaging = () => {
             )}
           </div>
           {imageUrl && (
-            <div className="mt-6 w-full flex justify-center">
+            <div className="mt-6 w-full flex flex-col items-center gap-3">
               <img
                 src={imageUrl}
                 alt="AI Generated"
                 className="rounded-lg border border-white/20 max-w-full h-auto shadow-lg"
                 style={{ maxHeight: 350, objectFit: "contain" }}
               />
+              <Button
+                onClick={handleDownloadImage}
+                size="lg"
+                className="mt-2 w-full max-w-xs flex items-center justify-center gap-2 text-lg py-3 rounded-xl bg-purple-600/90 hover:bg-purple-700 active:bg-purple-800 focus:ring-2 focus:ring-white/60"
+                aria-label="Download image"
+              >
+                <Download className="w-6 h-6" />
+                <span className="font-semibold">Download</span>
+              </Button>
             </div>
           )}
         </div>
