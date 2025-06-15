@@ -80,7 +80,7 @@ const Imaging = () => {
       }
       if (provider === "huggingface") {
         if (!hfApiKey) {
-          setError("Please add your HuggingFace API key to use this provider.");
+          setError("Please add your HuggingFace API key to use this provider. You can get one at https://huggingface.co/settings/tokens");
           return;
         }
         // Save API key for future use
@@ -127,7 +127,7 @@ const Imaging = () => {
     } catch (e: any) {
       setError(
         e?.message ||
-          "An error occurred while generating the image."
+        "An error occurred while generating the image. Double check your API keys are valid and try again."
       );
     } finally {
       setLoading(false);
@@ -135,7 +135,7 @@ const Imaging = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center overflow-x-hidden">
       <Card className="max-w-xl w-full mx-auto p-8 flex flex-col items-center bg-white/10 backdrop-blur-lg border-white/20 shadow-2xl">
         <ImageIcon className="w-10 h-10 mb-4 text-purple-300" />
         <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">
@@ -217,7 +217,32 @@ const Imaging = () => {
               )}
             </Button>
             {error && (
-              <p className="text-sm text-red-400 bg-red-900/30 rounded p-2 mt-2">{error}</p>
+              <div>
+                <p className="text-sm text-red-400 bg-red-900/30 rounded p-2 mt-2">{error}</p>
+                {provider === "gemini" && (
+                  <div className="text-xs text-white/80 mt-1">
+                    <b>Troubleshooting:</b> This can happen if the Gemini public API or model does not support image generation for your current API key.<br />
+                    Try using a different provider, or check for updates at
+                    <a 
+                      href="https://ai.google.dev/gemini-api/docs"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="ml-1 text-purple-200 underline"
+                    >Google Gemini API Docs</a>.
+                  </div>
+                )}
+                {provider === "huggingface" && (
+                  <div className="text-xs text-white/80 mt-1">
+                    <b>Troubleshooting:</b> Ensure your HuggingFace API key is correct and you have access to FLUX.1-dev.<br />
+                    <a 
+                      href="https://huggingface.co/settings/tokens"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="ml-1 text-purple-200 underline"
+                    >Get your HuggingFace API Key</a>.
+                  </div>
+                )}
+              </div>
             )}
           </div>
           {imageUrl && (

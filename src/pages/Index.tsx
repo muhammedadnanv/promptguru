@@ -13,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle, AlertCircle, History } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 const Index = () => {
   const { apiKeys, saveApiKey, deleteApiKey } = useSupabaseApiKeys();
@@ -64,15 +65,15 @@ const Index = () => {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
       {/* Imaging page link */}
       <div className="container mx-auto px-4 py-4 flex justify-end">
-        <a
-          href="/imaging"
+        <Link
+          to="/imaging"
           className="inline-flex items-center px-3 py-1.5 rounded-lg bg-purple-600/80 hover:bg-purple-700 text-white font-semibold shadow transition"
         >
           <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
             <path d="M21 15V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h3l1.34 2.68a2 2 0 0 0 1.79 1.12h2.74a2 2 0 0 0 1.79-1.12L16 17h3a2 2 0 0 0 2-2z"></path>
           </svg>
           Imaging
-        </a>
+        </Link>
       </div>
       <div className="relative z-10">
         <div className="container mx-auto px-4 py-4">
