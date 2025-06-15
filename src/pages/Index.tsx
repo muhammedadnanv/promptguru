@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import APIKeyManager from "@/components/APIKeyManager";
 import { useSupabaseApiKeys } from "@/hooks/useSupabaseApiKeys";
+import SystemInstructionsManager from "../components/SystemInstructionsManager";
 
 // NEW: Helper for responsive classnames
 const responsiveCard =
@@ -80,7 +81,7 @@ const Index = () => {
             </p>
           </div>
           <Tabs defaultValue="workspace" className="w-full">
-            <TabsList className="grid w-full grid-cols-1 xs:grid-cols-3 gap-3 mb-5 md:mb-8"
+            <TabsList className="grid w-full grid-cols-1 xs:grid-cols-4 gap-3 mb-5 md:mb-8"
               style={{ touchAction: "manipulation" }}
             >
               {/* Each tab trigger's font and padding improved for mobile */}
@@ -109,6 +110,14 @@ const Index = () => {
                 <Settings className="w-4 h-4 md:w-5 md:h-5 mr-2" />
                 <span className="hidden sm:inline">API Settings</span>
                 <span className="sm:hidden">API</span>
+              </TabsTrigger>
+              <TabsTrigger
+                value="system-instructions"
+                className="relative text-sm xs:text-base sm:text-lg md:text-sm px-2 py-3 md:px-4 md:py-3 rounded-lg min-h-[48px]"
+                style={{ minWidth: 48 }}
+              >
+                <span className="hidden sm:inline">System Instructions</span>
+                <span className="sm:hidden">System</span>
               </TabsTrigger>
             </TabsList>
             <TabsContent value="workspace" className="space-y-6 md:space-y-8">
@@ -215,6 +224,10 @@ const Index = () => {
                   </div>
                 )}
               </div>
+            </TabsContent>
+
+            <TabsContent value="system-instructions" className="py-4">
+              <SystemInstructionsManager />
             </TabsContent>
           </Tabs>
         </main>
