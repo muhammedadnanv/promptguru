@@ -34,7 +34,7 @@ export const generatePromptWithAI = async (
   }
 
   try {
-    console.log(`Calling ${provider} API with model ${model}`);
+    console.log(`Calling ${provider} API with model ${model}`, { inputLength: inputText.length, framework });
     
     switch (provider) {
       case 'openai':
@@ -82,20 +82,22 @@ const createSystemPrompt = (framework: string): string => {
     'PEACH': 'Purpose, Examples, Audience, Context, Hope - state the purpose clearly, provide relevant examples, define the audience, give context, and express the hoped-for outcome.'
   };
 
-  return `You are an expert prompt engineer. Transform the user's casual input into a well-structured, professional prompt using the ${framework} framework (${frameworkDescriptions[framework as keyof typeof frameworkDescriptions] || 'structured approach'}). 
+  return `You are an expert prompt engineer. Transform the user's casual input into a well-structured, professional prompt using the ${framework} framework.
+
+${framework} Framework: ${frameworkDescriptions[framework as keyof typeof frameworkDescriptions] || 'structured approach'}
 
 Make the prompt:
-- Clear and specific
-- Actionable and detailed
+- Clear and specific with actionable instructions
 - Well-organized according to the ${framework} structure
 - Professional yet engaging
 - Optimized for AI interaction
+- Include relevant context and examples where appropriate
 
-Respond with ONLY the transformed prompt, no explanations or meta-commentary.`;
+Transform the input into a polished prompt that will get better AI results. Respond with ONLY the transformed prompt, no explanations or meta-commentary.`;
 };
 
 const callOpenAI = async (inputText: string, framework: string, model: string, apiKey: string): Promise<AIResponse> => {
-  const modelName = model === 'gpt-4' ? 'gpt-4' : 'gpt-3.5-turbo';
+  const modelName = model === 'gpt-4' ? 'gpt-4.1-2025-04-14' : 'gpt-3.5-turbo';
   
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
@@ -122,7 +124,16 @@ const callOpenAI = async (inputText: string, framework: string, model: string, a
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    const errorMessage = errorData.error?.message || `OpenAI API error: ${response.status} ${response.statusText}`;
+    let errorMessage = `OpenAI API error: ${response.status} ${response.statusText}`;
+    
+    if (errorData.error?.message) {
+      errorMessage = errorData.error.message;
+    } else if (response.status === 401) {
+      errorMessage = "Invalid API key. Please check your OpenAI API key.";
+    } else if (response.status === 429) {
+      errorMessage = "Rate limit exceeded. Please try again later.";
+    }
+    
     throw new Error(errorMessage);
   }
 
@@ -145,7 +156,7 @@ const callAnthropic = async (inputText: string, framework: string, model: string
       'anthropic-version': '2023-06-01'
     },
     body: JSON.stringify({
-      model: 'claude-3-sonnet-20240229',
+      model: 'claude-3-5-sonnet-20241022',
       max_tokens: 1000,
       messages: [
         {
@@ -158,7 +169,16 @@ const callAnthropic = async (inputText: string, framework: string, model: string
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    const errorMessage = errorData.error?.message || `Anthropic API error: ${response.status} ${response.statusText}`;
+    let errorMessage = `Anthropic API error: ${response.status} ${response.statusText}`;
+    
+    if (errorData.error?.message) {
+      errorMessage = errorData.error.message;
+    } else if (response.status === 401) {
+      errorMessage = "Invalid API key. Please check your Anthropic API key.";
+    } else if (response.status === 429) {
+      errorMessage = "Rate limit exceeded. Please try again later.";
+    }
+    
     throw new Error(errorMessage);
   }
 
@@ -193,7 +213,16 @@ const callGoogle = async (inputText: string, framework: string, model: string, a
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    const errorMessage = errorData.error?.message || `Google AI API error: ${response.status} ${response.statusText}`;
+    let errorMessage = `Google AI API error: ${response.status} ${response.statusText}`;
+    
+    if (errorData.error?.message) {
+      errorMessage = errorData.error.message;
+    } else if (response.status === 401 || response.status === 403) {
+      errorMessage = "Invalid API key. Please check your Google AI API key.";
+    } else if (response.status === 429) {
+      errorMessage = "Rate limit exceeded. Please try again later.";
+    }
+    
     throw new Error(errorMessage);
   }
 

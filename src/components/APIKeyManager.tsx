@@ -31,7 +31,6 @@ const APIKeyManager = ({ onKeysUpdate }: APIKeyManagerProps) => {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Validate API keys on load
     validateAllKeys();
   }, []);
 
@@ -84,11 +83,14 @@ const APIKeyManager = ({ onKeysUpdate }: APIKeyManagerProps) => {
       onKeysUpdate(keys);
       validateAllKeys();
       
+      const validCount = Object.values(validationStatus).filter(status => status === 'valid').length;
+      
       toast({
         title: "API Keys Saved",
-        description: "Your API keys have been saved securely in your browser.",
+        description: `${validCount} valid API key(s) saved successfully.`,
       });
     } catch (error) {
+      console.error('Error saving API keys:', error);
       toast({
         title: "Save Failed",
         description: "Could not save API keys. Please try again.",
@@ -129,19 +131,22 @@ const APIKeyManager = ({ onKeysUpdate }: APIKeyManagerProps) => {
       key: 'openai' as keyof APIKeys,
       label: 'OpenAI API Key',
       placeholder: 'sk-...',
-      description: 'For GPT-4 and GPT-3.5 models'
+      description: 'For GPT-4 and GPT-3.5 models',
+      example: 'sk-1234567890abcdef...'
     },
     {
       key: 'anthropic' as keyof APIKeys,
       label: 'Anthropic API Key (Claude)',
       placeholder: 'sk-ant-...',
-      description: 'For Claude models'
+      description: 'For Claude models',
+      example: 'sk-ant-1234567890abcdef...'
     },
     {
       key: 'google' as keyof APIKeys,
       label: 'Google AI API Key (Gemini)',
       placeholder: 'AIza...',
-      description: 'For Gemini models'
+      description: 'For Gemini models',
+      example: 'AIza1234567890abcdef...'
     }
   ];
 
@@ -153,7 +158,7 @@ const APIKeyManager = ({ onKeysUpdate }: APIKeyManagerProps) => {
       </div>
       
       <div className="space-y-6">
-        {keyConfigs.map(({ key, label, placeholder, description }) => {
+        {keyConfigs.map(({ key, label, placeholder, description, example }) => {
           const status = getKeyStatus(key);
           const StatusIcon = status?.icon;
           
@@ -161,7 +166,9 @@ const APIKeyManager = ({ onKeysUpdate }: APIKeyManagerProps) => {
             <div key={key}>
               <Label className="text-gray-300 mb-2 block">
                 {label}
-                <span className="text-xs text-gray-400 block font-normal">{description}</span>
+                <span className="text-xs text-gray-400 block font-normal">
+                  {description} • Format: {example}
+                </span>
               </Label>
               <div className="flex space-x-2">
                 <div className="relative flex-1">
@@ -205,48 +212,9 @@ const APIKeyManager = ({ onKeysUpdate }: APIKeyManagerProps) => {
         <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
           <h4 className="text-sm font-semibold text-blue-300 mb-2">Security Notice</h4>
           <p className="text-xs text-blue-200">
-            Your API keys are stored locally in your browser and are never sent to our servers. 
+            Your API keys are stored securely in your browser's local storage and are never sent to our servers. 
             They are only used to communicate directly with the respective AI providers.
           </p>
-        </div>
-
-        <div className="text-xs text-gray-400 space-y-2">
-          <p className="font-medium text-gray-300">How to get API Keys:</p>
-          <div className="space-y-1">
-            <div>
-              <strong className="text-white">OpenAI:</strong>{" "}
-              <a 
-                href="https://platform.openai.com/api-keys" 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="text-blue-400 hover:underline"
-              >
-                platform.openai.com/api-keys
-              </a>
-            </div>
-            <div>
-              <strong className="text-white">Anthropic:</strong>{" "}
-              <a 
-                href="https://console.anthropic.com/" 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="text-blue-400 hover:underline"
-              >
-                console.anthropic.com
-              </a>
-            </div>
-            <div>
-              <strong className="text-white">Google:</strong>{" "}
-              <a 
-                href="https://aistudio.google.com/app/apikey" 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="text-blue-400 hover:underline"
-              >
-                aistudio.google.com/app/apikey
-              </a>
-            </div>
-          </div>
         </div>
       </div>
     </Card>

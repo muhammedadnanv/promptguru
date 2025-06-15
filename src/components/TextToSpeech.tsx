@@ -20,13 +20,23 @@ const TextToSpeech = ({ text, className = "" }: TextToSpeechProps) => {
     // Check if speech synthesis is supported
     if (!('speechSynthesis' in window)) {
       setIsSupported(false);
+      console.log('Text-to-speech not supported in this browser');
     }
+
+    // Load voices
+    const loadVoices = () => {
+      speechSynthesis.getVoices();
+    };
+    
+    loadVoices();
+    speechSynthesis.addEventListener('voiceschanged', loadVoices);
 
     // Cleanup on unmount
     return () => {
       if (speechSynthesis.speaking) {
         speechSynthesis.cancel();
       }
+      speechSynthesis.removeEventListener('voiceschanged', loadVoices);
     };
   }, []);
 
@@ -87,7 +97,7 @@ const TextToSpeech = ({ text, className = "" }: TextToSpeechProps) => {
       // Set a preferred voice if available
       const voices = speechSynthesis.getVoices();
       const preferredVoice = voices.find(voice => 
-        voice.lang.startsWith('en') && voice.name.includes('Google')
+        voice.lang.startsWith('en') && (voice.name.includes('Google') || voice.name.includes('Microsoft'))
       ) || voices.find(voice => voice.lang.startsWith('en'));
       
       if (preferredVoice) {
@@ -95,20 +105,20 @@ const TextToSpeech = ({ text, className = "" }: TextToSpeechProps) => {
       }
 
       newUtterance.onstart = () => {
-        console.log('Speech started');
+        console.log('Text-to-speech started');
         setIsPlaying(true);
         setIsPaused(false);
       };
 
       newUtterance.onend = () => {
-        console.log('Speech ended');
+        console.log('Text-to-speech ended');
         setIsPlaying(false);
         setIsPaused(false);
         utteranceRef.current = null;
       };
 
       newUtterance.onerror = (event) => {
-        console.error('Speech error:', event.error);
+        console.error('Text-to-speech error:', event.error);
         setIsPlaying(false);
         setIsPaused(false);
         utteranceRef.current = null;
@@ -121,19 +131,20 @@ const TextToSpeech = ({ text, className = "" }: TextToSpeechProps) => {
       };
 
       newUtterance.onpause = () => {
-        console.log('Speech paused');
+        console.log('Text-to-speech paused');
         setIsPaused(true);
         setIsPlaying(false);
       };
 
       newUtterance.onresume = () => {
-        console.log('Speech resumed');
+        console.log('Text-to-speech resumed');
         setIsPaused(false);
         setIsPlaying(true);
       };
 
       try {
         speechSynthesis.speak(newUtterance);
+        console.log('Starting text-to-speech for:', text.substring(0, 50) + '...');
       } catch (error) {
         console.error('Speech synthesis error:', error);
         toast({
@@ -151,6 +162,7 @@ const TextToSpeech = ({ text, className = "" }: TextToSpeechProps) => {
       setIsPlaying(false);
       setIsPaused(false);
       utteranceRef.current = null;
+      console.log('Text-to-speech stopped');
     }
   };
 
@@ -164,7 +176,7 @@ const TextToSpeech = ({ text, className = "" }: TextToSpeechProps) => {
         onClick={handleSpeak}
         variant="ghost"
         size="sm"
-        className="text-gray-400 hover:text-white"
+        className="text-gray-400 hover:text-white transition-colors"
         title={isPaused ? "Resume" : isPlaying ? "Pause" : "Play"}
       >
         {isPaused ? (
@@ -181,7 +193,7 @@ const TextToSpeech = ({ text, className = "" }: TextToSpeechProps) => {
           onClick={handleStop}
           variant="ghost"
           size="sm"
-          className="text-gray-400 hover:text-red-400"
+          className="text-gray-400 hover:text-red-400 transition-colors"
           title="Stop"
         >
           <VolumeX className="w-4 h-4" />

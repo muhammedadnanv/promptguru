@@ -23,7 +23,7 @@ const VoiceRecorder = ({ onTranscript }: VoiceRecorderProps) => {
       setIsSupported(false);
       toast({
         title: "Not supported",
-        description: "Speech recognition is not supported in your browser. Please use Chrome or Edge.",
+        description: "Speech recognition is not supported in your browser. Please use Chrome, Edge, or Safari.",
         variant: "destructive",
       });
       return;
@@ -62,7 +62,7 @@ const VoiceRecorder = ({ onTranscript }: VoiceRecorderProps) => {
         setIsProcessing(false);
         toast({
           title: "Recording started",
-          description: "Speak your idea clearly...",
+          description: "Speak your idea clearly. Click the red button to stop.",
         });
       };
       
@@ -75,7 +75,7 @@ const VoiceRecorder = ({ onTranscript }: VoiceRecorderProps) => {
             onTranscript(finalTranscript.trim());
             toast({
               title: "Voice recorded!",
-              description: "Your voice note has been transcribed.",
+              description: "Your voice note has been transcribed successfully.",
             });
           } else {
             toast({
