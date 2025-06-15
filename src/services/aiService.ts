@@ -17,16 +17,22 @@ export const generatePromptWithAI = async (
   apiKeys: APIKeys
 ): Promise<AIResponse> => {
   const provider = getProviderFromModel(model);
-  const apiKey = apiKeys[provider as keyof APIKeys];
 
-  if (!apiKey || apiKey.trim() === '') {
+  // Default Gemini API key, fallback if none is set by user
+  const DEFAULT_GEMINI_KEY = "AIzaSyCY_Gf50SSfWUiVsHV_cFzGECJZBF-OGuc";
+  const apiKey =
+    provider === "google"
+      ? apiKeys.google?.trim() || DEFAULT_GEMINI_KEY
+      : apiKeys[provider as keyof APIKeys];
+
+  if (!apiKey || apiKey.trim() === "") {
     return {
       content: "",
       error: `Please configure your ${getProviderName(provider)} API key in the API Settings tab first.`
     };
   }
 
-  if (!inputText || inputText.trim() === '') {
+  if (!inputText || inputText.trim() === "") {
     return {
       content: "",
       error: "Please provide some input text to transform."
@@ -35,13 +41,12 @@ export const generatePromptWithAI = async (
 
   try {
     console.log(`Calling ${provider} API with model ${model}`, { inputLength: inputText.length, framework });
-    
     switch (provider) {
-      case 'openai':
+      case "openai":
         return await callOpenAI(inputText, framework, model, apiKey);
-      case 'anthropic':
+      case "anthropic":
         return await callAnthropic(inputText, framework, model, apiKey);
-      case 'google':
+      case "google":
         return await callGoogle(inputText, framework, model, apiKey);
       default:
         return {
