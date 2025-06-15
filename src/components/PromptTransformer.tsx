@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -29,47 +28,10 @@ const PromptTransformer = ({ inputText, framework, model, apiKeys, onTransformed
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
-  // Determine model provider (OpenRouter, OpenAI, Anthropic, Google)
-  const getModelProvider = (model: string): keyof APIKeys | "openrouter" => {
-    console.log("Checking model provider for:", model);
-    if (model.toLowerCase().includes("openrouter")) {
-      console.log("Detected OpenRouter model");
-      return "openrouter";
-    }
-    if (model.includes("gpt")) {
-      console.log("Detected OpenAI model");
-      return "openai";
-    }
-    if (model.includes("claude")) {
-      console.log("Detected Anthropic model");
-      return "anthropic";
-    }
-    if (model.includes("gemini")) {
-      console.log("Detected Google model");
-      return "google";
-    }
-    console.log("Defaulting to OpenAI model");
-    return "openai";
-  };
-
-  // For OpenRouter models, always allow (no API key required), blank or missing keys OK
+  // Since we only use OpenRouter now, always return true for API key check
   const isAPIKeyConfigured = (): boolean => {
-    const provider = getModelProvider(model);
-    console.log("Checking API key configuration for provider:", provider);
-    
-    if (provider === "openrouter") {
-      console.log("OpenRouter model - always allowing");
-      return true;
-    }
-    if (provider === "google") {
-      console.log("Google model - always allowing (embedded key)");
-      return true;
-    }
-    
-    const key = apiKeys[provider as keyof APIKeys];
-    const hasKey = !!(key && key.trim() !== "");
-    console.log(`${provider} API key configured:`, hasKey);
-    return hasKey;
+    console.log("Using OpenRouter - always configured");
+    return true;
   };
 
   const handleTransform = async () => {
@@ -86,34 +48,11 @@ const PromptTransformer = ({ inputText, framework, model, apiKeys, onTransformed
       return;
     }
 
-    const provider = getModelProvider(model);
-    console.log("Provider determined as:", provider);
-
-    // Only block for API key if NOT OpenRouter or Google (so OpenRouter always passes!)
-    if (!isAPIKeyConfigured() && !["openrouter", "google"].includes(provider)) {
-      const providerNames = {
-        openai: "OpenAI",
-        anthropic: "Anthropic",
-        google: "Google",
-        openrouter: "OpenRouter",
-      };
-
-      const errorMsg = `Please configure your ${providerNames[provider]} API key in the API Settings tab.`;
-      console.log("Blocking due to missing API key:", errorMsg);
-      setError(errorMsg);
-      toast({
-        title: "API Key required",
-        description: errorMsg,
-        variant: "destructive",
-      });
-      return;
-    }
-
-    console.log("Proceeding with transformation...");
+    console.log("Proceeding with OpenRouter transformation...");
     setIsTransforming(true);
 
     try {
-      console.log("Starting prompt transformation...", {
+      console.log("Starting prompt transformation with OpenRouter...", {
         model,
         framework,
         inputLength: inputText.length,
@@ -205,13 +144,13 @@ const PromptTransformer = ({ inputText, framework, model, apiKeys, onTransformed
       <div className="text-center">
         <Button
           onClick={handleTransform}
-          disabled={isTransforming || !inputText.trim() || !isAPIKeyConfigured()}
+          disabled={isTransforming || !inputText.trim()}
           className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-8 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50"
         >
           {isTransforming ? (
             <>
               <Wand2 className="w-5 h-5 mr-2 animate-spin" />
-              Transforming with AI...
+              Transforming with OpenRouter...
             </>
           ) : (
             <>
@@ -220,15 +159,6 @@ const PromptTransformer = ({ inputText, framework, model, apiKeys, onTransformed
             </>
           )}
         </Button>
-
-        {/* Never show API key warning if provider is OpenRouter or Google */}
-        {!isAPIKeyConfigured() &&
-          !["openrouter", "google"].includes(getModelProvider(model)) && (
-            <p className="text-sm text-yellow-400 mt-2 flex items-center justify-center">
-              <AlertCircle className="w-4 h-4 mr-1" />
-              Configure API key for {getModelProvider(model)} in Settings
-            </p>
-          )}
       </div>
 
       {error && (

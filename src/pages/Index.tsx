@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { usePromptHistory } from "@/hooks/usePromptHistory";
 import Header from "../components/Header";
@@ -25,7 +24,7 @@ const Index = () => {
   } = usePromptHistory();
   const [inputText, setInputText] = useState("");
   const [selectedFramework, setSelectedFramework] = useState("CLEAR");
-  const [selectedModel, setSelectedModel] = useState("gpt-4");
+  const [selectedModel, setSelectedModel] = useState("openrouter/anthropic/claude-3.5-sonnet");
   const [transformedPrompt, setTransformedPrompt] = useState("");
 
   // Supabase API key hook for APIKeyManager
@@ -43,10 +42,7 @@ const Index = () => {
   };
 
   const getModelProvider = (model: string): string => {
-    if (model.includes('gpt')) return 'openai';
-    if (model.includes('claude')) return 'anthropic';
-    if (model.includes('gemini')) return 'google';
-    return 'openai';
+    return 'openrouter'; // Always OpenRouter now
   };
 
   const handlePromptTransformed = async (transformed: string) => {
@@ -222,4 +218,3 @@ const Index = () => {
     </div>;
 };
 export default Index;
-
