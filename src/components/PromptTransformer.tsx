@@ -30,20 +30,20 @@ const PromptTransformer = ({ inputText, framework, model, apiKeys, onTransformed
 
   // Update getModelProvider for OpenRouter models
   const getModelProvider = (model: string): keyof APIKeys | "openrouter" => {
-    if (model.toLowerCase().includes('openrouter')) return 'openrouter';
-    if (model.includes('gpt')) return 'openai';
-    if (model.includes('claude')) return 'anthropic';
-    if (model.includes('gemini')) return 'google';
-    return 'openai';
+    if (model.toLowerCase().includes("openrouter")) return "openrouter";
+    if (model.includes("gpt")) return "openai";
+    if (model.includes("claude")) return "anthropic";
+    if (model.includes("gemini")) return "google";
+    return "openai";
   };
 
-  // For OpenRouter models, always allow (no API key required)
+  // For OpenRouter models, always allow without user API key config
   const isAPIKeyConfigured = (): boolean => {
     const provider = getModelProvider(model);
-    // OpenRouter and Gemini always work (public embedded keys)
-    if (provider === 'google' || provider === 'openrouter') return true;
+    if (provider === "openrouter") return true;
+    if (provider === "google") return true; // Gemini uses embedded key
     const key = apiKeys[provider as keyof APIKeys];
-    return !!(key && key.trim() !== '');
+    return !!(key && key.trim() !== "");
   };
 
   const handleTransform = async () => {
@@ -59,13 +59,14 @@ const PromptTransformer = ({ inputText, framework, model, apiKeys, onTransformed
       return;
     }
 
-    if (!isAPIKeyConfigured()) {
-      const provider = getModelProvider(model);
+    const provider = getModelProvider(model);
+    // Only block for API key if NOT OpenRouter or Google
+    if (!isAPIKeyConfigured() && !["openrouter", "google"].includes(provider)) {
       const providerNames = {
-        openai: 'OpenAI',
-        anthropic: 'Anthropic',
-        google: 'Google',
-        openrouter: 'OpenRouter',
+        openai: "OpenAI",
+        anthropic: "Anthropic",
+        google: "Google",
+        openrouter: "OpenRouter",
       };
 
       setError(`Please configure your ${providerNames[provider]} API key in the API Settings tab.`);
@@ -80,7 +81,11 @@ const PromptTransformer = ({ inputText, framework, model, apiKeys, onTransformed
     setIsTransforming(true);
 
     try {
-      console.log('Starting prompt transformation...', { model, framework, inputLength: inputText.length });
+      console.log("Starting prompt transformation...", {
+        model,
+        framework,
+        inputLength: inputText.length,
+      });
 
       const result = await generatePromptWithAI(inputText, framework, model, apiKeys);
 
@@ -94,7 +99,7 @@ const PromptTransformer = ({ inputText, framework, model, apiKeys, onTransformed
         return;
       }
 
-      if (!result.content || result.content.trim() === '') {
+      if (!result.content || result.content.trim() === "") {
         setError("No content was generated. Please try again.");
         toast({
           title: "Transform failed",
@@ -115,7 +120,7 @@ const PromptTransformer = ({ inputText, framework, model, apiKeys, onTransformed
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
       setError(errorMessage);
-      console.error('Transform error:', error);
+      console.error("Transform error:", error);
 
       toast({
         title: "Transform failed",
@@ -180,13 +185,14 @@ const PromptTransformer = ({ inputText, framework, model, apiKeys, onTransformed
           )}
         </Button>
 
-        {/* Show API key warning only for providers that require user config (not OpenRouter/Gemini) */}
-        {!isAPIKeyConfigured() && !['openrouter', 'google'].includes(getModelProvider(model)) && (
-          <p className="text-sm text-yellow-400 mt-2 flex items-center justify-center">
-            <AlertCircle className="w-4 h-4 mr-1" />
-            Configure API key for {getModelProvider(model)} in Settings
-          </p>
-        )}
+        {/* Show API key warning only for providers that require user config */}
+        {!isAPIKeyConfigured() &&
+          !["openrouter", "google"].includes(getModelProvider(model)) && (
+            <p className="text-sm text-yellow-400 mt-2 flex items-center justify-center">
+              <AlertCircle className="w-4 h-4 mr-1" />
+              Configure API key for {getModelProvider(model)} in Settings
+            </p>
+          )}
       </div>
 
       {error && (
