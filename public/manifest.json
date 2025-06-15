@@ -1,0 +1,18 @@
+
+{
+  "name": "Guru Prompt Engine",
+  "short_name": "GuruPrompt",
+  "description": "Transform ideas into perfect prompts, now as a PWA!",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#1e1b4b",
+  "theme_color": "#a78bfa",
+  "icons": [
+    {
+      "src": "/placeholder.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
