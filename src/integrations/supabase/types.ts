@@ -284,6 +284,63 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          created_at: string | null
+          email: string | null
+          full_name: string | null
+          id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email?: string | null
+          full_name?: string | null
+          id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      prompts: {
+        Row: {
+          content: string
+          created_at: string | null
+          framework: string
+          id: string
+          model: string
+          title: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          framework: string
+          id?: string
+          model: string
+          title?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          framework?: string
+          id?: string
+          model?: string
+          title?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       referrals: {
         Row: {
           completed_at: string | null
@@ -422,6 +479,47 @@ export type Database = {
         }
         Relationships: []
       }
+      transformations: {
+        Row: {
+          created_at: string | null
+          id: string
+          model_used: string
+          processing_time: number | null
+          prompt_id: string
+          provider: string
+          transformed_content: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          model_used: string
+          processing_time?: number | null
+          prompt_id: string
+          provider: string
+          transformed_content: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          model_used?: string
+          processing_time?: number | null
+          prompt_id?: string
+          provider?: string
+          transformed_content?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transformations_prompt_id_fkey"
+            columns: ["prompt_id"]
+            isOneToOne: false
+            referencedRelation: "prompts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       triggers: {
         Row: {
           created_at: string
@@ -471,6 +569,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_api_keys: {
+        Row: {
+          created_at: string | null
+          encrypted_key: string
+          id: string
+          is_active: boolean | null
+          provider: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          encrypted_key: string
+          id?: string
+          is_active?: boolean | null
+          provider: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          encrypted_key?: string
+          id?: string
+          is_active?: boolean | null
+          provider?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       webhook_events: {
         Row: {

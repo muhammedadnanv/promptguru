@@ -1,41 +1,35 @@
 
 import { useState, useEffect } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useSupabaseApiKeys } from "@/hooks/useSupabaseApiKeys";
+import { usePromptHistory } from "@/hooks/usePromptHistory";
 import Header from "../components/Header";
 import VoiceRecorder from "../components/VoiceRecorder";
 import PromptFrameworkSelector from "../components/PromptFrameworkSelector";
 import AIModelSelector from "../components/AIModelSelector";
 import PromptTransformer from "../components/PromptTransformer";
 import APIKeyManager from "../components/APIKeyManager";
+import UserMenu from "../components/UserMenu";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, AlertCircle } from "lucide-react";
-
-interface APIKeys {
-  openai: string;
-  anthropic: string;
-  google: string;
-}
+import { CheckCircle, AlertCircle, History } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const Index = () => {
+  const { user } = useAuth();
+  const { apiKeys, saveApiKey, deleteApiKey } = useSupabaseApiKeys();
+  const { prompts, savePrompt, saveTransformation, deletePrompt } = usePromptHistory();
   const [inputText, setInputText] = useState("");
   const [selectedFramework, setSelectedFramework] = useState("CLEAR");
   const [selectedModel, setSelectedModel] = useState("gpt-4");
   const [transformedPrompt, setTransformedPrompt] = useState("");
-  const [apiKeys, setApiKeys] = useState<APIKeys>(() => {
-    try {
-      const saved = localStorage.getItem('ai-api-keys');
-      return saved ? JSON.parse(saved) : { openai: '', anthropic: '', google: '' };
-    } catch {
-      return { openai: '', anthropic: '', google: '' };
-    }
-  });
 
-  const handleAPIKeysUpdate = (keys: APIKeys) => {
-    setApiKeys(keys);
+  const handleAPIKeysUpdate = async (keys: any) => {
+    // API keys are now automatically saved through useSupabaseApiKeys hook
   };
 
-  const getModelProvider = (model: string): keyof APIKeys => {
+  const getModelProvider = (model: string): keyof typeof apiKeys => {
     if (model.includes('gpt')) return 'openai';
     if (model.includes('claude')) return 'anthropic';
     if (model.includes('gemini')) return 'google';
@@ -52,18 +46,22 @@ const Index = () => {
     return Object.values(apiKeys).filter(key => key && key.trim() !== '').length;
   };
 
-  // Load API keys on mount
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem('ai-api-keys');
-      if (saved) {
-        const keys = JSON.parse(saved);
-        setApiKeys(keys);
+  const handlePromptTransformed = async (transformed: string) => {
+    setTransformedPrompt(transformed);
+    
+    // Save the prompt and transformation to Supabase
+    if (inputText.trim()) {
+      const prompt = await savePrompt(inputText, selectedFramework, selectedModel);
+      if (prompt && transformed) {
+        await saveTransformation(
+          prompt.id,
+          transformed,
+          getModelProvider(selectedModel),
+          selectedModel
+        );
       }
-    } catch (error) {
-      console.error('Failed to load API keys:', error);
     }
-  }, []);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
@@ -75,7 +73,12 @@ const Index = () => {
       />
       
       <div className="relative z-10">
-        <Header />
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex justify-between items-center mb-8">
+            <Header />
+            <UserMenu />
+          </div>
+        </div>
         
         <main className="container mx-auto px-4 py-8 max-w-6xl">
           <div className="text-center mb-12">
@@ -89,7 +92,7 @@ const Index = () => {
           </div>
 
           <Tabs defaultValue="workspace" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-8">
+            <TabsList className="grid w-full grid-cols-3 mb-8">
               <TabsTrigger value="workspace" className="relative">
                 Workspace
                 {!isAPIKeyConfigured() && (
@@ -103,6 +106,13 @@ const Index = () => {
                   className="ml-2 text-xs"
                 >
                   {getConfiguredKeysCount()}/3
+                </Badge>
+              </TabsTrigger>
+              <TabsTrigger value="history" className="relative">
+                <History className="w-4 h-4 mr-2" />
+                History
+                <Badge variant="secondary" className="ml-2 text-xs">
+                  {prompts.length}
                 </Badge>
               </TabsTrigger>
             </TabsList>
@@ -173,13 +183,18 @@ const Index = () => {
                 framework={selectedFramework}
                 model={selectedModel}
                 apiKeys={apiKeys}
-                onTransformed={setTransformedPrompt}
+                onTransformed={handlePromptTransformed}
               />
             </TabsContent>
 
             <TabsContent value="settings">
               <div className="max-w-2xl mx-auto">
-                <APIKeyManager onKeysUpdate={handleAPIKeysUpdate} />
+                <APIKeyManager 
+                  onKeysUpdate={handleAPIKeysUpdate}
+                  apiKeys={apiKeys}
+                  onSaveKey={saveApiKey}
+                  onDeleteKey={deleteApiKey}
+                />
                 
                 <Card className="mt-6 p-6 bg-white/5 backdrop-blur-lg border-white/10">
                   <h3 className="text-lg font-semibold text-white mb-4">How to get API Keys:</h3>
@@ -204,6 +219,61 @@ const Index = () => {
                     </div>
                   </div>
                 </Card>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="history">
+              <div className="max-w-4xl mx-auto">
+                <h2 className="text-2xl font-semibold text-white mb-6">Your Prompt History</h2>
+                
+                {prompts.length === 0 ? (
+                  <Card className="p-8 bg-white/5 backdrop-blur-lg border-white/10 text-center">
+                    <History className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-300 text-lg">No prompts yet</p>
+                    <p className="text-gray-400">Your transformed prompts will appear here</p>
+                  </Card>
+                ) : (
+                  <div className="space-y-4">
+                    {prompts.map((prompt) => (
+                      <Card key={prompt.id} className="p-6 bg-white/5 backdrop-blur-lg border-white/10">
+                        <div className="flex justify-between items-start mb-4">
+                          <div>
+                            <h3 className="text-lg font-semibold text-white">{prompt.title}</h3>
+                            <div className="flex items-center space-x-4 text-sm text-gray-400 mt-1">
+                              <span>{prompt.framework} framework</span>
+                              <span>{prompt.model}</span>
+                              <span>{new Date(prompt.created_at).toLocaleDateString()}</span>
+                            </div>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => deletePrompt(prompt.id)}
+                            className="text-red-400 hover:text-red-300"
+                          >
+                            Delete
+                          </Button>
+                        </div>
+                        
+                        <div className="space-y-4">
+                          <div>
+                            <h4 className="text-sm font-medium text-gray-300 mb-2">Original Input:</h4>
+                            <p className="text-gray-200 text-sm bg-white/5 p-3 rounded">{prompt.content}</p>
+                          </div>
+                          
+                          {prompt.transformations && prompt.transformations.length > 0 && (
+                            <div>
+                              <h4 className="text-sm font-medium text-gray-300 mb-2">Transformed Prompt:</h4>
+                              <p className="text-gray-200 text-sm bg-white/5 p-3 rounded">
+                                {prompt.transformations[0].transformed_content}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
+                )}
               </div>
             </TabsContent>
           </Tabs>
