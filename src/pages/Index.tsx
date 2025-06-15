@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { usePromptHistory } from "@/hooks/usePromptHistory";
 import Header from "../components/Header";
@@ -9,7 +10,7 @@ import WhatsAppWidget from "../components/WhatsAppWidget";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, AlertCircle, History, Settings } from "lucide-react";
+import { History, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import APIKeyManager from "@/components/APIKeyManager";
@@ -24,7 +25,7 @@ const Index = () => {
   } = usePromptHistory();
   const [inputText, setInputText] = useState("");
   const [selectedFramework, setSelectedFramework] = useState("CLEAR");
-  const [selectedModel, setSelectedModel] = useState("openrouter/anthropic/claude-3.5-sonnet");
+  const [selectedModel, setSelectedModel] = useState("anthropic/claude-3.5-sonnet");
   const [transformedPrompt, setTransformedPrompt] = useState("");
 
   // Supabase API key hook for APIKeyManager
@@ -35,11 +36,6 @@ const Index = () => {
     deleteApiKey,
     refreshKeys
   } = useSupabaseApiKeys();
-
-  const isAPIKeyConfigured = (): boolean => {
-    if (selectedModel.includes('gemini')) return true;
-    return true;
-  };
 
   const getModelProvider = (model: string): string => {
     return 'openrouter'; // Always OpenRouter now
@@ -57,7 +53,8 @@ const Index = () => {
     }
   };
 
-  return <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
       {/* Imaging page link */}
       <div className="container mx-auto px-4 py-4 flex justify-end">
         <Link to="/imaging" className="inline-flex items-center px-3 py-1.5 rounded-lg bg-purple-600/80 hover:bg-purple-700 text-white font-semibold shadow transition">
@@ -80,13 +77,13 @@ const Index = () => {
               Transform Ideas into Perfect Prompts
             </h1>
             <p className="text-lg md:text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed px-4">
-              Use advanced prompt frameworks and real AI APIs to turn your casual thoughts and voice notes into 
+              Use advanced prompt frameworks and AI models via OpenRouter to turn your casual thoughts and voice notes into 
               structured, optimized prompts that get better AI results.
             </p>
           </div>
 
           <Tabs defaultValue="workspace" className="w-full">
-            <TabsList className="grid w-full grid-cols-4 mb-6 md:mb-8">
+            <TabsList className="grid w-full grid-cols-3 mb-6 md:mb-8">
               <TabsTrigger value="workspace" className="relative text-xs md:text-sm">
                 <span className="hidden sm:inline">Workspace</span>
                 <span className="sm:hidden">Work</span>
@@ -108,7 +105,6 @@ const Index = () => {
             </TabsList>
 
             <TabsContent value="workspace" className="space-y-6 md:space-y-8">
-              {/* No more API key warning needed for Gemini */}
               <div className="grid lg:grid-cols-2 gap-6 md:gap-8">
                 {/* Input Section */}
                 <Card className="p-4 md:p-6 bg-white/10 backdrop-blur-lg border-white/20 shadow-2xl">
@@ -120,7 +116,12 @@ const Index = () => {
                     <label className="block text-sm font-medium text-gray-300 mb-2">
                       Or type your casual idea:
                     </label>
-                    <textarea value={inputText} onChange={e => setInputText(e.target.value)} placeholder="e.g., I want to write a blog post about sustainable gardening but make it engaging for beginners..." className="w-full h-32 md:h-32 p-3 md:p-4 bg-white/5 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none text-sm md:text-base" />
+                    <textarea 
+                      value={inputText} 
+                      onChange={e => setInputText(e.target.value)} 
+                      placeholder="e.g., I want to write a blog post about sustainable gardening but make it engaging for beginners..." 
+                      className="w-full h-32 md:h-32 p-3 md:p-4 bg-white/5 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none text-sm md:text-base" 
+                    />
                     <p className="text-xs text-gray-400 mt-2">
                       {inputText.length} characters
                     </p>
@@ -135,20 +136,18 @@ const Index = () => {
                     <PromptFrameworkSelector selected={selectedFramework} onSelect={setSelectedFramework} />
                     
                     <AIModelSelector selected={selectedModel} onSelect={setSelectedModel} />
-
-                    {/* for non-gemini, show a warning */}
-                    {selectedModel.includes('gpt') || selectedModel.includes('claude') ? (
-                      <div className="flex items-center space-x-2 text-yellow-400">
-                        <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                        <span className="text-sm">Only Gemini model is enabled by default with embedded key. </span>
-                      </div>
-                    ) : null}
                   </div>
                 </Card>
               </div>
 
               {/* Transformation Section */}
-              <PromptTransformer inputText={inputText} framework={selectedFramework} model={selectedModel} apiKeys={{openai: "", anthropic: "", google: ""}} onTransformed={handlePromptTransformed} />
+              <PromptTransformer 
+                inputText={inputText} 
+                framework={selectedFramework} 
+                model={selectedModel} 
+                apiKeys={{openai: "", anthropic: "", google: ""}} 
+                onTransformed={handlePromptTransformed} 
+              />
             </TabsContent>
 
             {/* API Settings Tab */}
@@ -163,21 +162,20 @@ const Index = () => {
               </div>
             </TabsContent>
 
-            {/* REMOVE: Settings Tab */}
-            {/* <TabsContent value="settings">
-              ...
-            </TabsContent> */}
-
             <TabsContent value="history">
               <div className="max-w-4xl mx-auto">
                 <h2 className="text-xl md:text-2xl font-semibold text-white mb-4 md:mb-6">Your Prompt History</h2>
                 
-                {prompts.length === 0 ? <Card className="p-6 md:p-8 bg-white/5 backdrop-blur-lg border-white/10 text-center">
+                {prompts.length === 0 ? (
+                  <Card className="p-6 md:p-8 bg-white/5 backdrop-blur-lg border-white/10 text-center">
                     <History className="w-10 h-10 md:w-12 md:h-12 text-gray-400 mx-auto mb-4" />
                     <p className="text-gray-300 text-lg">No prompts yet</p>
                     <p className="text-gray-400">Your transformed prompts will appear here</p>
-                  </Card> : <div className="space-y-4">
-                    {prompts.map(prompt => <Card key={prompt.id} className="p-4 md:p-6 bg-white/5 backdrop-blur-lg border-white/10">
+                  </Card>
+                ) : (
+                  <div className="space-y-4">
+                    {prompts.map(prompt => (
+                      <Card key={prompt.id} className="p-4 md:p-6 bg-white/5 backdrop-blur-lg border-white/10">
                         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-4 space-y-2 sm:space-y-0">
                           <div className="flex-1">
                             <h3 className="text-lg font-semibold text-white">{prompt.title}</h3>
@@ -187,7 +185,12 @@ const Index = () => {
                               <span>{new Date(prompt.created_at).toLocaleDateString()}</span>
                             </div>
                           </div>
-                          <Button variant="ghost" size="sm" onClick={() => deletePrompt(prompt.id)} className="text-red-400 hover:text-red-300 self-start sm:self-auto">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => deletePrompt(prompt.id)} 
+                            className="text-red-400 hover:text-red-300 self-start sm:self-auto"
+                          >
                             Delete
                           </Button>
                         </div>
@@ -198,15 +201,19 @@ const Index = () => {
                             <p className="text-gray-200 text-sm bg-white/5 p-3 rounded break-words">{prompt.content}</p>
                           </div>
                           
-                          {prompt.transformations && prompt.transformations.length > 0 && <div>
+                          {prompt.transformations && prompt.transformations.length > 0 && (
+                            <div>
                               <h4 className="text-sm font-medium text-gray-300 mb-2">Transformed Prompt:</h4>
                               <p className="text-gray-200 text-sm bg-white/5 p-3 rounded break-words">
                                 {prompt.transformations[0].transformed_content}
                               </p>
-                            </div>}
+                            </div>
+                          )}
                         </div>
-                      </Card>)}
-                  </div>}
+                      </Card>
+                    ))}
+                  </div>
+                )}
               </div>
             </TabsContent>
           </Tabs>
@@ -215,6 +222,8 @@ const Index = () => {
 
       {/* WhatsApp Widget */}
       <WhatsAppWidget />
-    </div>;
+    </div>
+  );
 };
+
 export default Index;

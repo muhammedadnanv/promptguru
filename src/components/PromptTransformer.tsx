@@ -196,7 +196,7 @@ const PromptTransformer = ({ inputText, framework, model, apiKeys, onTransformed
                 <Badge className="bg-gradient-to-r from-purple-500 to-pink-500">
                   {framework} Framework
                 </Badge>
-                <Badge variant="outline">{model}</Badge>
+                <Badge variant="outline">{model.split('/').pop()}</Badge>
                 {transformedPrompt && <TextToSpeech text={transformedPrompt} />}
               </div>
             </div>

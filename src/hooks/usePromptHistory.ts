@@ -17,7 +17,7 @@ interface Transformation {
   id: string;
   prompt_id: string;
   transformed_content: string;
-  ai_provider: string;
+  provider: string;
   model_used: string;
   created_at: string;
 }
@@ -93,11 +93,11 @@ export const usePromptHistory = () => {
   const saveTransformation = async (
     promptId: string, 
     transformedContent: string, 
-    aiProvider: string, 
+    provider: string, 
     modelUsed: string
   ): Promise<Transformation | null> => {
     try {
-      console.log("Saving transformation:", { promptId, transformedContent: transformedContent.substring(0, 50), aiProvider, modelUsed });
+      console.log("Saving transformation:", { promptId, transformedContent: transformedContent.substring(0, 50), provider, modelUsed });
       
       const { data, error } = await supabase
         .from('transformations')
@@ -105,7 +105,7 @@ export const usePromptHistory = () => {
           {
             prompt_id: promptId,
             transformed_content: transformedContent,
-            ai_provider: aiProvider,
+            provider: provider,
             model_used: modelUsed,
           },
         ])

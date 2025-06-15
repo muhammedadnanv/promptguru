@@ -13,34 +13,62 @@ interface AIModel {
 
 const models: AIModel[] = [
   {
-    id: "openrouter/anthropic/claude-3.5-sonnet",
+    id: "openai/gpt-4o",
+    name: "GPT-4o",
+    provider: "OpenAI",
+    strengths: ["Reasoning", "Multimodal", "Code"],
+    badge: "Latest",
+    description: "OpenAI's most advanced model"
+  },
+  {
+    id: "openai/gpt-4o-mini",
+    name: "GPT-4o Mini",
+    provider: "OpenAI",
+    strengths: ["Fast", "Efficient", "Code"],
+    description: "Fast and efficient version of GPT-4o"
+  },
+  {
+    id: "anthropic/claude-3.5-sonnet",
     name: "Claude 3.5 Sonnet",
-    provider: "OpenRouter",
+    provider: "Anthropic",
     strengths: ["Writing", "Analysis", "Code"],
     badge: "Recommended",
     description: "Excellent for creative writing and complex analysis"
   },
   {
-    id: "openrouter/openai/gpt-4o",
-    name: "GPT-4o",
-    provider: "OpenRouter",
-    strengths: ["Reasoning", "Multimodal", "Code"],
-    badge: "Latest",
-    description: "OpenAI's most advanced model via OpenRouter"
+    id: "anthropic/claude-3-haiku",
+    name: "Claude 3 Haiku",
+    provider: "Anthropic",
+    strengths: ["Speed", "Efficiency", "Analysis"],
+    description: "Fast and efficient Claude model"
   },
   {
-    id: "openrouter/meta-llama/llama-3.1-405b-instruct",
+    id: "google/gemini-pro-1.5",
+    name: "Gemini Pro 1.5",
+    provider: "Google",
+    strengths: ["Multimodal", "Long Context", "Speed"],
+    description: "Google's advanced model with massive context window"
+  },
+  {
+    id: "meta-llama/llama-3.1-405b-instruct",
     name: "Llama 3.1 405B",
-    provider: "OpenRouter",
+    provider: "Meta",
     strengths: ["Open Source", "Large Context", "Reasoning"],
     description: "Meta's most powerful open-source model"
   },
   {
-    id: "openrouter/google/gemini-pro-1.5",
-    name: "Gemini Pro 1.5",
-    provider: "OpenRouter",
-    strengths: ["Multimodal", "Long Context", "Speed"],
-    description: "Google's advanced model with massive context window"
+    id: "meta-llama/llama-3.1-70b-instruct",
+    name: "Llama 3.1 70B",
+    provider: "Meta",
+    strengths: ["Open Source", "Efficient", "Reasoning"],
+    description: "Balanced performance and efficiency"
+  },
+  {
+    id: "mistralai/mistral-large",
+    name: "Mistral Large",
+    provider: "Mistral AI",
+    strengths: ["Multilingual", "Code", "Reasoning"],
+    description: "High-performance multilingual model"
   }
 ];
 
@@ -55,11 +83,11 @@ const AIModelSelector = ({ selected, onSelect }: AIModelSelectorProps) => {
       <label className="block text-sm font-medium text-gray-300 mb-3">
         Select AI Model
         <span className="text-xs text-gray-400 block font-normal mt-1">
-          All models run via OpenRouter with embedded API key
+          All models available via OpenRouter API
         </span>
       </label>
       
-      <div className="grid grid-cols-1 gap-3">
+      <div className="grid grid-cols-1 gap-3 max-h-80 overflow-y-auto">
         {models.map((model) => (
           <Card
             key={model.id}

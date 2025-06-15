@@ -16,8 +16,8 @@ export const generatePromptWithAI = async (
   model: string,
   apiKeys: APIKeys
 ): Promise<AIResponse> => {
-  // Always use OpenRouter with the default key
-  const DEFAULT_OPENROUTER_KEY = "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";
+  // Use the provided OpenRouter API key
+  const OPENROUTER_API_KEY = "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";
 
   if (!inputText || inputText.trim() === "") {
     return {
@@ -28,7 +28,7 @@ export const generatePromptWithAI = async (
 
   try {
     console.log(`Calling OpenRouter API with model ${model}`, { inputLength: inputText.length, framework });
-    return await callOpenRouter(inputText, framework, model, DEFAULT_OPENROUTER_KEY);
+    return await callOpenRouter(inputText, framework, model, OPENROUTER_API_KEY);
   } catch (error) {
     console.error('AI Service Error:', error);
     return {
