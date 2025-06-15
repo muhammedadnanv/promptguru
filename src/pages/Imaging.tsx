@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Link } from "react-router-dom";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
-import NavigationBar from "../components/NavigationBar";
 
 const GEMINI_API_KEY = "AIzaSyCY_Gf50SSfWUiVsHV_cFzGECJZBF-OGuc";
 
@@ -154,146 +153,143 @@ const Imaging = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center overflow-x-hidden">
-      <NavigationBar />
-      <div className="w-full pt-[62px] flex items-center justify-center">
-        <Card className="max-w-xl w-full mx-auto p-8 flex flex-col items-center bg-white/10 backdrop-blur-lg border-white/20 shadow-2xl">
-          <ImageIcon className="w-10 h-10 mb-4 text-purple-300" />
-          <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">
-            Imaging Playground
-          </h1>
-          <p className="text-lg text-gray-300 mb-3 text-center">
-            This page lets you generate and transform images with AI.<br />
-            <span className="text-purple-200">Powered by Gemini (Google AI) and HuggingFace FLUX</span>
-          </p>
-          <Button asChild variant="outline" className="mb-2 text-white border-white/30">
-            <Link to="/">← Back to Home</Link>
-          </Button>
-          <div className="w-full mt-2 flex flex-col md:flex-row gap-2 mb-4 justify-center">
-            <div className="flex-1">
-              <label className="text-white text-sm">AI Provider</label>
-              <Select
-                value={provider}
-                onValueChange={(v) => setProvider(v as "gemini" | "huggingface")}
-              >
-                <SelectTrigger className="w-full bg-white/10 border-white/20 text-white">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-background">
-                  <SelectItem value="gemini">Gemini (Google AI, built-in)</SelectItem>
-                  <SelectItem value="huggingface">HuggingFace FLUX.1-dev (requires key)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            {provider === "huggingface" && (
-              <div className="flex-1">
-                <label className="text-white text-sm" htmlFor="hf-api-key">
-                  HuggingFace API Key
-                </label>
-                <Input
-                  id="hf-api-key"
-                  type="password"
-                  className="bg-white/10 border-white/20 text-white"
-                  value={hfApiKey}
-                  onChange={(e) => setHfApiKey(e.target.value)}
-                  placeholder="Paste your HuggingFace key"
-                  autoComplete="off"
-                />
-                <a
-                  className="text-xs text-purple-200 underline"
-                  href="https://huggingface.co/settings/tokens"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Get your HuggingFace access token
-                </a>
-              </div>
-            )}
-          </div>
-          {/* AI IMAGE GENERATOR */}
-          <div className="w-full mt-2">
-            <div className="flex flex-col space-y-2">
-              <label className="text-white font-medium" htmlFor="image-prompt">
-                Enter your image description
-              </label>
-              <Input
-                id="image-prompt"
-                type="text"
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
-                placeholder="e.g., A futuristic city skyline at sunset"
-                className="bg-white/10 text-white border-white/30"
-              />
-              <Button
-                className="mt-2 w-full"
-                onClick={handleGenerateImage}
-                disabled={!prompt.trim() || loading}
-              >
-                {loading ? (
-                  <span className="flex items-center gap-2">
-                    <Loader className="h-4 w-4 animate-spin" /> Generating...
-                  </span>
-                ) : (
-                  "Generate Image"
-                )}
-              </Button>
-              {error && (
-                <div>
-                  <p className="text-sm text-red-400 bg-red-900/30 rounded p-2 mt-2">{error}</p>
-                  {provider === "gemini" && (
-                    <div className="text-xs text-white/80 mt-1">
-                      <b>Troubleshooting:</b> This can happen if the Gemini public API or model does not support image generation for your current API key.<br />
-                      Try using a different provider, or check for updates at
-                      <a 
-                        href="https://ai.google.dev/gemini-api/docs"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="ml-1 text-purple-200 underline"
-                      >Google Gemini API Docs</a>.
-                    </div>
-                  )}
-                  {provider === "huggingface" && (
-                    <div className="text-xs text-white/80 mt-1">
-                      <b>Troubleshooting:</b> Ensure your HuggingFace API key is correct and you have access to FLUX.1-dev.<br />
-                      <a 
-                        href="https://huggingface.co/settings/tokens"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="ml-1 text-purple-200 underline"
-                      >Get your HuggingFace API Key</a>.
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-            {imageUrl && (
-              <div className="mt-6 w-full flex flex-col items-center gap-3">
-                <img
-                  src={imageUrl}
-                  alt="AI Generated"
-                  className="rounded-lg border border-white/20 max-w-full h-auto shadow-lg"
-                  style={{ maxHeight: 350, objectFit: "contain" }}
-                />
-                <Button
-                  onClick={handleDownloadImage}
-                  size="lg"
-                  className="mt-2 w-full max-w-xs flex items-center justify-center gap-2 text-lg py-3 rounded-xl bg-purple-600/90 hover:bg-purple-700 active:bg-purple-800 focus:ring-2 focus:ring-white/60"
-                  aria-label="Download image"
-                >
-                  <Download className="w-6 h-6" />
-                  <span className="font-semibold">Download</span>
-                </Button>
-              </div>
-            )}
+      <Card className="max-w-xl w-full mx-auto p-8 flex flex-col items-center bg-white/10 backdrop-blur-lg border-white/20 shadow-2xl">
+        <ImageIcon className="w-10 h-10 mb-4 text-purple-300" />
+        <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">
+          Imaging Playground
+        </h1>
+        <p className="text-lg text-gray-300 mb-3 text-center">
+          This page lets you generate and transform images with AI.<br />
+          <span className="text-purple-200">Powered by Gemini (Google AI) and HuggingFace FLUX</span>
+        </p>
+        <Button asChild variant="outline" className="mb-2 text-white border-white/30">
+          <Link to="/">← Back to Home</Link>
+        </Button>
+        <div className="w-full mt-2 flex flex-col md:flex-row gap-2 mb-4 justify-center">
+          <div className="flex-1">
+            <label className="text-white text-sm">AI Provider</label>
+            <Select
+              value={provider}
+              onValueChange={(v) => setProvider(v as "gemini" | "huggingface")}
+            >
+              <SelectTrigger className="w-full bg-white/10 border-white/20 text-white">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-background">
+                <SelectItem value="gemini">Gemini (Google AI, built-in)</SelectItem>
+                <SelectItem value="huggingface">HuggingFace FLUX.1-dev (requires key)</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           {provider === "huggingface" && (
-            <div className="mt-4 text-center text-xs text-blue-200 bg-slate-900/60 p-2 rounded">
-              <b>Note:</b> The HuggingFace FLUX.1-dev model requires you to set your personal access token.<br />
-              If you don't have an API key, <a className="underline" href="https://huggingface.co/settings/tokens" target="_blank" rel="noopener noreferrer">get it here</a>.<br />
-              Please be aware of usage limits on the free tier.
+            <div className="flex-1">
+              <label className="text-white text-sm" htmlFor="hf-api-key">
+                HuggingFace API Key
+              </label>
+              <Input
+                id="hf-api-key"
+                type="password"
+                className="bg-white/10 border-white/20 text-white"
+                value={hfApiKey}
+                onChange={(e) => setHfApiKey(e.target.value)}
+                placeholder="Paste your HuggingFace key"
+                autoComplete="off"
+              />
+              <a
+                className="text-xs text-purple-200 underline"
+                href="https://huggingface.co/settings/tokens"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Get your HuggingFace access token
+              </a>
             </div>
           )}
-        </Card>
-      </div>
+        </div>
+        {/* AI IMAGE GENERATOR */}
+        <div className="w-full mt-2">
+          <div className="flex flex-col space-y-2">
+            <label className="text-white font-medium" htmlFor="image-prompt">
+              Enter your image description
+            </label>
+            <Input
+              id="image-prompt"
+              type="text"
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              placeholder="e.g., A futuristic city skyline at sunset"
+              className="bg-white/10 text-white border-white/30"
+            />
+            <Button
+              className="mt-2 w-full"
+              onClick={handleGenerateImage}
+              disabled={!prompt.trim() || loading}
+            >
+              {loading ? (
+                <span className="flex items-center gap-2">
+                  <Loader className="h-4 w-4 animate-spin" /> Generating...
+                </span>
+              ) : (
+                "Generate Image"
+              )}
+            </Button>
+            {error && (
+              <div>
+                <p className="text-sm text-red-400 bg-red-900/30 rounded p-2 mt-2">{error}</p>
+                {provider === "gemini" && (
+                  <div className="text-xs text-white/80 mt-1">
+                    <b>Troubleshooting:</b> This can happen if the Gemini public API or model does not support image generation for your current API key.<br />
+                    Try using a different provider, or check for updates at
+                    <a 
+                      href="https://ai.google.dev/gemini-api/docs"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="ml-1 text-purple-200 underline"
+                    >Google Gemini API Docs</a>.
+                  </div>
+                )}
+                {provider === "huggingface" && (
+                  <div className="text-xs text-white/80 mt-1">
+                    <b>Troubleshooting:</b> Ensure your HuggingFace API key is correct and you have access to FLUX.1-dev.<br />
+                    <a 
+                      href="https://huggingface.co/settings/tokens"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="ml-1 text-purple-200 underline"
+                    >Get your HuggingFace API Key</a>.
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+          {imageUrl && (
+            <div className="mt-6 w-full flex flex-col items-center gap-3">
+              <img
+                src={imageUrl}
+                alt="AI Generated"
+                className="rounded-lg border border-white/20 max-w-full h-auto shadow-lg"
+                style={{ maxHeight: 350, objectFit: "contain" }}
+              />
+              <Button
+                onClick={handleDownloadImage}
+                size="lg"
+                className="mt-2 w-full max-w-xs flex items-center justify-center gap-2 text-lg py-3 rounded-xl bg-purple-600/90 hover:bg-purple-700 active:bg-purple-800 focus:ring-2 focus:ring-white/60"
+                aria-label="Download image"
+              >
+                <Download className="w-6 h-6" />
+                <span className="font-semibold">Download</span>
+              </Button>
+            </div>
+          )}
+        </div>
+        {provider === "huggingface" && (
+          <div className="mt-4 text-center text-xs text-blue-200 bg-slate-900/60 p-2 rounded">
+            <b>Note:</b> The HuggingFace FLUX.1-dev model requires you to set your personal access token.<br />
+            If you don't have an API key, <a className="underline" href="https://huggingface.co/settings/tokens" target="_blank" rel="noopener noreferrer">get it here</a>.<br />
+            Please be aware of usage limits on the free tier.
+          </div>
+        )}
+      </Card>
     </div>
   );
 };
