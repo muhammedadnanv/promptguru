@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { usePromptHistory } from "@/hooks/usePromptHistory";
 import Header from "../components/Header";
@@ -15,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import APIKeyManager from "@/components/APIKeyManager";
 import { useSupabaseApiKeys } from "@/hooks/useSupabaseApiKeys";
+import NavigationBar from "../components/NavigationBar";
 
 // NEW: Helper for responsive classnames
 const responsiveCard =
@@ -52,23 +52,19 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-      {/* Imaging page link */}
-      <div className="container mx-auto px-2 xs:px-3 sm:px-4 py-3 flex justify-end">
-        <Link
-          to="/imaging"
-          className="inline-flex items-center px-4 py-3 sm:px-4 sm:py-2 rounded-xl bg-purple-600/80 hover:bg-purple-700 text-white font-semibold shadow transition text-base md:text-base"
-        >
-          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-            <path d="M21 15V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h3l1.34 2.68a2 2 0 0 0 1.79 1.12h2.74a2 2 0 0 0 1.79-1.12L16 17h3a2 2 0 0 0 2-2z"></path>
-          </svg>
-          <span className="hidden xs:inline">Imaging</span>
-        </Link>
-      </div>
-      <div className="relative z-10">
-        <div className="container mx-auto px-2 xs:px-3 sm:px-4 py-3">
-          <div className="flex flex-col md:flex-row justify-between items-center mb-4 md:mb-8 gap-4 xs:gap-5">
-            <Header />
-          </div>
+      <NavigationBar />
+      <div className="pt-[62px]">{/* ensure enough space for navbar, ~2.5rem+ gap */}
+        {/* Imaging page link */}
+        <div className="container mx-auto px-2 xs:px-3 sm:px-4 py-3 flex justify-end">
+          <Link
+            to="/imaging"
+            className="inline-flex items-center px-4 py-3 sm:px-4 sm:py-2 rounded-xl bg-purple-600/80 hover:bg-purple-700 text-white font-semibold shadow transition text-base md:text-base"
+          >
+            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path d="M21 15V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h3l1.34 2.68a2 2 0 0 0 1.79 1.12h2.74a2 2 0 0 0 1.79-1.12L16 17h3a2 2 0 0 0 2-2z"></path>
+            </svg>
+            <span className="hidden xs:inline">Imaging</span>
+          </Link>
         </div>
         <main className="container mx-auto px-0 xs:px-2 sm:px-4 py-2 md:py-8 max-w-6xl">
           <div className="text-center mb-8 md:mb-12">
