@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Image as ImageIcon, Loader } from "lucide-react";
@@ -29,8 +28,9 @@ const Imaging = () => {
 
     try {
       if (provider === "gemini") {
+        // ------- UPDATED: using newer gemini-1.5-flash model --------
         const res = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-vision:generateContent?key=${GEMINI_API_KEY}`,
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -72,6 +72,8 @@ const Imaging = () => {
         }
         if (imgBase64) {
           setImageUrl(imgBase64);
+        } else if (data?.error?.message) {
+          setError(`Gemini API error: ${data.error.message}`);
         } else {
           setError("No image was returned from Gemini AI. (This public API only supports images in vision models. If you see this a lot, try a newer model/key or contact support.)");
         }
@@ -242,4 +244,3 @@ const Imaging = () => {
 };
 
 export default Imaging;
-
