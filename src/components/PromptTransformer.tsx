@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -30,23 +31,49 @@ const PromptTransformer = ({ inputText, framework, model, apiKeys, onTransformed
 
   // Determine model provider (OpenRouter, OpenAI, Anthropic, Google)
   const getModelProvider = (model: string): keyof APIKeys | "openrouter" => {
-    if (model.toLowerCase().includes("openrouter")) return "openrouter";
-    if (model.includes("gpt")) return "openai";
-    if (model.includes("claude")) return "anthropic";
-    if (model.includes("gemini")) return "google";
+    console.log("Checking model provider for:", model);
+    if (model.toLowerCase().includes("openrouter")) {
+      console.log("Detected OpenRouter model");
+      return "openrouter";
+    }
+    if (model.includes("gpt")) {
+      console.log("Detected OpenAI model");
+      return "openai";
+    }
+    if (model.includes("claude")) {
+      console.log("Detected Anthropic model");
+      return "anthropic";
+    }
+    if (model.includes("gemini")) {
+      console.log("Detected Google model");
+      return "google";
+    }
+    console.log("Defaulting to OpenAI model");
     return "openai";
   };
 
   // For OpenRouter models, always allow (no API key required), blank or missing keys OK
   const isAPIKeyConfigured = (): boolean => {
     const provider = getModelProvider(model);
-    if (provider === "openrouter") return true;
-    if (provider === "google") return true; // Gemini uses embedded key
+    console.log("Checking API key configuration for provider:", provider);
+    
+    if (provider === "openrouter") {
+      console.log("OpenRouter model - always allowing");
+      return true;
+    }
+    if (provider === "google") {
+      console.log("Google model - always allowing (embedded key)");
+      return true;
+    }
+    
     const key = apiKeys[provider as keyof APIKeys];
-    return !!(key && key.trim() !== "");
+    const hasKey = !!(key && key.trim() !== "");
+    console.log(`${provider} API key configured:`, hasKey);
+    return hasKey;
   };
 
   const handleTransform = async () => {
+    console.log("Transform button clicked with:", { model, framework, inputText: inputText.substring(0, 50) + "..." });
     setError(null);
 
     if (!inputText.trim()) {
@@ -60,6 +87,7 @@ const PromptTransformer = ({ inputText, framework, model, apiKeys, onTransformed
     }
 
     const provider = getModelProvider(model);
+    console.log("Provider determined as:", provider);
 
     // Only block for API key if NOT OpenRouter or Google (so OpenRouter always passes!)
     if (!isAPIKeyConfigured() && !["openrouter", "google"].includes(provider)) {
@@ -70,15 +98,18 @@ const PromptTransformer = ({ inputText, framework, model, apiKeys, onTransformed
         openrouter: "OpenRouter",
       };
 
-      setError(`Please configure your ${providerNames[provider]} API key in the API Settings tab.`);
+      const errorMsg = `Please configure your ${providerNames[provider]} API key in the API Settings tab.`;
+      console.log("Blocking due to missing API key:", errorMsg);
+      setError(errorMsg);
       toast({
         title: "API Key required",
-        description: `Please configure your ${providerNames[provider]} API key in the API Settings tab.`,
+        description: errorMsg,
         variant: "destructive",
       });
       return;
     }
 
+    console.log("Proceeding with transformation...");
     setIsTransforming(true);
 
     try {
@@ -89,8 +120,10 @@ const PromptTransformer = ({ inputText, framework, model, apiKeys, onTransformed
       });
 
       const result = await generatePromptWithAI(inputText, framework, model, apiKeys);
+      console.log("AI service result:", result);
 
       if (result.error) {
+        console.log("AI service returned error:", result.error);
         setError(result.error);
         toast({
           title: "Transform failed",
@@ -101,6 +134,7 @@ const PromptTransformer = ({ inputText, framework, model, apiKeys, onTransformed
       }
 
       if (!result.content || result.content.trim() === "") {
+        console.log("AI service returned empty content");
         setError("No content was generated. Please try again.");
         toast({
           title: "Transform failed",
@@ -110,6 +144,7 @@ const PromptTransformer = ({ inputText, framework, model, apiKeys, onTransformed
         return;
       }
 
+      console.log("Transformation successful, content length:", result.content.length);
       setTransformedPrompt(result.content);
       onTransformed(result.content);
       setError(null);
@@ -120,8 +155,8 @@ const PromptTransformer = ({ inputText, framework, model, apiKeys, onTransformed
       });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
-      setError(errorMessage);
       console.error("Transform error:", error);
+      setError(errorMessage);
 
       toast({
         title: "Transform failed",
