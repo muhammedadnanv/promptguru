@@ -28,7 +28,7 @@ const PromptTransformer = ({ inputText, framework, model, apiKeys, onTransformed
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
-  // Update getModelProvider for OpenRouter models
+  // Determine model provider (OpenRouter, OpenAI, Anthropic, Google)
   const getModelProvider = (model: string): keyof APIKeys | "openrouter" => {
     if (model.toLowerCase().includes("openrouter")) return "openrouter";
     if (model.includes("gpt")) return "openai";
@@ -37,7 +37,7 @@ const PromptTransformer = ({ inputText, framework, model, apiKeys, onTransformed
     return "openai";
   };
 
-  // For OpenRouter models, always allow without user API key config
+  // For OpenRouter models, always allow (no API key required), blank or missing keys OK
   const isAPIKeyConfigured = (): boolean => {
     const provider = getModelProvider(model);
     if (provider === "openrouter") return true;
@@ -60,7 +60,8 @@ const PromptTransformer = ({ inputText, framework, model, apiKeys, onTransformed
     }
 
     const provider = getModelProvider(model);
-    // Only block for API key if NOT OpenRouter or Google
+
+    // Only block for API key if NOT OpenRouter or Google (so OpenRouter always passes!)
     if (!isAPIKeyConfigured() && !["openrouter", "google"].includes(provider)) {
       const providerNames = {
         openai: "OpenAI",
@@ -185,7 +186,7 @@ const PromptTransformer = ({ inputText, framework, model, apiKeys, onTransformed
           )}
         </Button>
 
-        {/* Show API key warning only for providers that require user config */}
+        {/* Never show API key warning if provider is OpenRouter or Google */}
         {!isAPIKeyConfigured() &&
           !["openrouter", "google"].includes(getModelProvider(model)) && (
             <p className="text-sm text-yellow-400 mt-2 flex items-center justify-center">
