@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -30,6 +29,7 @@ export const usePromptHistory = () => {
   const GLOBAL_USER_ID = "00000000-0000-0000-0000-000000000001";
 
   const loadPrompts = async () => {
+    setLoading(true);
     try {
       console.log("Loading prompts for user:", GLOBAL_USER_ID);
       const { data, error } = await supabase
@@ -43,13 +43,14 @@ export const usePromptHistory = () => {
 
       if (error) {
         console.error('Error loading prompts:', error);
-        throw error;
+        setPrompts([]);
+        return;
       }
 
-      console.log("Loaded prompts:", data);
+      console.log("Fetched prompts data:", data);
       setPrompts(data || []);
     } catch (error) {
-      console.error('Error loading prompts:', error);
+      console.error('Exception in loadPrompts:', error);
       setPrompts([]);
     } finally {
       setLoading(false);
@@ -59,9 +60,8 @@ export const usePromptHistory = () => {
   const savePrompt = async (content: string, framework: string, model: string): Promise<Prompt | null> => {
     try {
       console.log("Saving prompt:", { content: content.substring(0, 50), framework, model });
-      
       const title = content.length > 50 ? content.substring(0, 50) + '...' : content;
-      
+
       const { data, error } = await supabase
         .from('prompts')
         .insert([
@@ -78,14 +78,14 @@ export const usePromptHistory = () => {
 
       if (error) {
         console.error('Error saving prompt:', error);
-        throw error;
+        return null;
       }
+      console.log("Prompt saved:", data);
 
-      console.log("Saved prompt:", data);
-      await loadPrompts(); // Reload prompts
+      await loadPrompts();
       return data;
     } catch (error) {
-      console.error('Error saving prompt:', error);
+      console.error('Exception in savePrompt:', error);
       return null;
     }
   };
@@ -98,7 +98,6 @@ export const usePromptHistory = () => {
   ): Promise<Transformation | null> => {
     try {
       console.log("Saving transformation:", { promptId, transformedContent: transformedContent.substring(0, 50), provider, modelUsed });
-      
       const { data, error } = await supabase
         .from('transformations')
         .insert([
@@ -107,7 +106,7 @@ export const usePromptHistory = () => {
             transformed_content: transformedContent,
             provider: provider,
             model_used: modelUsed,
-            user_id: GLOBAL_USER_ID, // <-- Added this line
+            user_id: GLOBAL_USER_ID,
           },
         ])
         .select()
@@ -115,14 +114,15 @@ export const usePromptHistory = () => {
 
       if (error) {
         console.error('Error saving transformation:', error);
-        throw error;
+        return null;
       }
 
-      console.log("Saved transformation:", data);
-      await loadPrompts(); // Reload prompts
+      console.log("Transformation saved:", data);
+
+      await loadPrompts();
       return data;
     } catch (error) {
-      console.error('Error saving transformation:', error);
+      console.error('Exception in saveTransformation:', error);
       return null;
     }
   };
@@ -130,7 +130,6 @@ export const usePromptHistory = () => {
   const deletePrompt = async (id: string) => {
     try {
       console.log("Deleting prompt:", id);
-      
       const { error } = await supabase
         .from('prompts')
         .delete()
@@ -138,13 +137,13 @@ export const usePromptHistory = () => {
 
       if (error) {
         console.error('Error deleting prompt:', error);
-        throw error;
+        return;
       }
+      console.log("Prompt deleted:", id);
 
-      console.log("Deleted prompt:", id);
-      await loadPrompts(); // Reload prompts
+      await loadPrompts();
     } catch (error) {
-      console.error('Error deleting prompt:', error);
+      console.error('Exception in deletePrompt:', error);
     }
   };
 
