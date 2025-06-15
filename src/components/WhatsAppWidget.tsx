@@ -103,8 +103,8 @@ const WhatsAppWidget = () => {
                 </Button>
 
                 <p className="text-xs text-gray-500 text-center px-4">
-                  You'll be redirected to WhatsApp to start chatting with our AI assistant. 
-                  No phone number required - it's an AI service.
+                  You&apos;ll be redirected to WhatsApp to start chatting with our AI assistant. 
+                  No phone number required - it&apos;s an AI service.
                 </p>
               </div>
             </div>
