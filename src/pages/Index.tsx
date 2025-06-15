@@ -15,6 +15,7 @@ import { Link } from "react-router-dom";
 import APIKeyManager from "@/components/APIKeyManager";
 import { useSupabaseApiKeys } from "@/hooks/useSupabaseApiKeys";
 import SystemInstructionsManager from "../components/SystemInstructionsManager";
+import VibeCodingPromptCreator from "@/components/VibeCodingPromptCreator";
 
 // NEW: Helper for responsive classnames
 const responsiveCard =
@@ -81,7 +82,7 @@ const Index = () => {
             </p>
           </div>
           <Tabs defaultValue="workspace" className="w-full">
-            <TabsList className="grid w-full grid-cols-1 xs:grid-cols-4 gap-3 mb-5 md:mb-8"
+            <TabsList className="grid w-full grid-cols-1 xs:grid-cols-5 gap-3 mb-5 md:mb-8"
               style={{ touchAction: "manipulation" }}
             >
               {/* Each tab trigger's font and padding improved for mobile */}
@@ -118,6 +119,14 @@ const Index = () => {
               >
                 <span className="hidden sm:inline">System Instructions</span>
                 <span className="sm:hidden">System</span>
+              </TabsTrigger>
+              <TabsTrigger
+                value="vibe-coding"
+                className="relative text-sm xs:text-base sm:text-lg md:text-sm px-2 py-3 md:px-4 md:py-3 rounded-lg min-h-[48px]"
+                style={{ minWidth: 48 }}
+              >
+                <span className="hidden sm:inline">Vibe Coding</span>
+                <span className="sm:hidden">Vibe</span>
               </TabsTrigger>
             </TabsList>
             <TabsContent value="workspace" className="space-y-6 md:space-y-8">
@@ -228,6 +237,12 @@ const Index = () => {
 
             <TabsContent value="system-instructions" className="py-4">
               <SystemInstructionsManager />
+            </TabsContent>
+
+            <TabsContent value="vibe-coding" className="py-4">
+              <div className="max-w-2xl mx-auto">
+                <VibeCodingPromptCreator />
+              </div>
             </TabsContent>
           </Tabs>
         </main>
