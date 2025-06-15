@@ -5,77 +5,127 @@ import { Image as ImageIcon, Loader } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Link } from "react-router-dom";
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
 
 const GEMINI_API_KEY = "AIzaSyCY_Gf50SSfWUiVsHV_cFzGECJZBF-OGuc";
 
+// Helper to get HF API key from localStorage or prompt user
+function getHuggingFaceKey() {
+  return localStorage.getItem("HF_API_KEY") || "";
+}
+
 const Imaging = () => {
   const [prompt, setPrompt] = useState("");
+  const [provider, setProvider] = useState<"gemini" | "huggingface">("gemini");
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [hfApiKey, setHfApiKey] = useState(getHuggingFaceKey());
 
   const handleGenerateImage = async () => {
     setLoading(true);
     setError(null);
     setImageUrl(null);
+
     try {
-      // Gemini (Google Generative Language) text-to-image endpoint
-      const res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-vision:generateContent?key=${GEMINI_API_KEY}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [
-              {
-                parts: [
-                  {
-                    text: `Generate a high-quality image based on this prompt: "${prompt}"`
-                  }
-                ]
+      if (provider === "gemini") {
+        const res = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-vision:generateContent?key=${GEMINI_API_KEY}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              contents: [
+                {
+                  parts: [
+                    {
+                      text: `Generate a high-quality image based on this prompt: "${prompt}"`
+                    }
+                  ]
+                }
+              ],
+              generationConfig: {
+                maxOutputTokens: 200,
+                temperature: 0.7,
               }
-            ],
-            generationConfig: {
-              maxOutputTokens: 200,
-              temperature: 0.7,
+            }),
+          }
+        );
+        const data = await res.json();
+        let imgBase64;
+        if (
+          data?.candidates &&
+          Array.isArray(data.candidates) &&
+          data.candidates[0]?.content?.parts
+        ) {
+          const parts = data.candidates[0].content.parts;
+          for (const part of parts) {
+            if (part.inlineData && part.inlineData.mimeType?.startsWith("image/")) {
+              imgBase64 = `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
+              break;
             }
-          }),
+            if (part.fileData && part.fileData.mimeType?.startsWith("image/")) {
+              imgBase64 = `data:${part.fileData.mimeType};base64,${part.fileData.data}`;
+              break;
+            }
+          }
         }
-      );
-      const data = await res.json();
-      // The Gemini API returns base64 image data in the "candidates" array when using vision model.
-      // In most use cases, third-party APIs or cloud functions are needed for image synthesis;
-      // for demo, show a fallback image if no image produced
-      let imgBase64;
-      // Try several possible paths (API might change)
-      if (
-        data?.candidates &&
-        Array.isArray(data.candidates) &&
-        data.candidates[0]?.content?.parts
-      ) {
-        const parts = data.candidates[0].content.parts;
-        for (const part of parts) {
-          if (part.inlineData && part.inlineData.mimeType?.startsWith("image/")) {
-            imgBase64 = `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
-            break;
-          }
-          // newer Gemini may return images in "fileData" or "data" fields
-          if (part.fileData && part.fileData.mimeType?.startsWith("image/")) {
-            imgBase64 = `data:${part.fileData.mimeType};base64,${part.fileData.data}`;
-            break;
-          }
+        if (imgBase64) {
+          setImageUrl(imgBase64);
+        } else {
+          setError("No image was returned from Gemini AI. (This public API only supports images in vision models. If you see this a lot, try a newer model/key or contact support.)");
         }
       }
-      if (imgBase64) {
-        setImageUrl(imgBase64);
-      } else {
-        // Fallback: show error or placeholder
-        setError("No image was returned from Gemini AI. (This public API only supports images in vision models. If you see this a lot, try a newer model/key or contact support.)");
+      if (provider === "huggingface") {
+        if (!hfApiKey) {
+          setError("Please add your HuggingFace API key to use this provider.");
+          return;
+        }
+        // Save API key for future use
+        localStorage.setItem("HF_API_KEY", hfApiKey);
+
+        // Call HuggingFace Inference API: https://api-inference.huggingface.co/docs/python/html/index.html
+        // for text-to-image
+        const res = await fetch("https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-dev", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${hfApiKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            inputs: prompt,
+            parameters: {
+              // see: https://huggingface.co/docs/api-inference/detailed_parameters#image-to-image
+            }
+          }),
+        });
+
+        if (res.status === 503) {
+          setError("The FLUX.1-dev model is loading on HuggingFace (cold start). Please retry in a moment.");
+          return;
+        }
+        if (res.status === 401 || res.status === 403) {
+          setError("Your HuggingFace API key is invalid or missing access. Please check the key and your account permissions.");
+          return;
+        }
+
+        const contentType = res.headers.get("content-type");
+        if (contentType && contentType.startsWith("image/")) {
+          const blob = await res.blob();
+          setImageUrl(URL.createObjectURL(blob));
+        } else {
+          const result = await res.json();
+          if (result?.error) {
+            setError(result.error || "HuggingFace returned an error.");
+          } else {
+            setError("No image returned from HuggingFace. Please check your API key and account limits.");
+          }
+        }
       }
     } catch (e: any) {
       setError(
         e?.message ||
-          "An error occurred when generating the image using Gemini AI."
+          "An error occurred while generating the image."
       );
     } finally {
       setLoading(false);
@@ -90,16 +140,55 @@ const Imaging = () => {
           Imaging Playground
         </h1>
         <p className="text-lg text-gray-300 mb-3 text-center">
-          This page lets you generate and transform images with AI.
-          <br />
-          <span className="text-purple-200">Powered by Gemini (Google AI)</span>
+          This page lets you generate and transform images with AI.<br />
+          <span className="text-purple-200">Powered by Gemini (Google AI) and HuggingFace FLUX</span>
         </p>
         <Button asChild variant="outline" className="mb-2 text-white border-white/30">
           <Link to="/">← Back to Home</Link>
         </Button>
-
+        <div className="w-full mt-2 flex flex-col md:flex-row gap-2 mb-4 justify-center">
+          <div className="flex-1">
+            <label className="text-white text-sm">AI Provider</label>
+            <Select
+              value={provider}
+              onValueChange={(v) => setProvider(v as "gemini" | "huggingface")}
+            >
+              <SelectTrigger className="w-full bg-white/10 border-white/20 text-white">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-background">
+                <SelectItem value="gemini">Gemini (Google AI, built-in)</SelectItem>
+                <SelectItem value="huggingface">HuggingFace FLUX.1-dev (requires key)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          {provider === "huggingface" && (
+            <div className="flex-1">
+              <label className="text-white text-sm" htmlFor="hf-api-key">
+                HuggingFace API Key
+              </label>
+              <Input
+                id="hf-api-key"
+                type="password"
+                className="bg-white/10 border-white/20 text-white"
+                value={hfApiKey}
+                onChange={(e) => setHfApiKey(e.target.value)}
+                placeholder="Paste your HuggingFace key"
+                autoComplete="off"
+              />
+              <a
+                className="text-xs text-purple-200 underline"
+                href="https://huggingface.co/settings/tokens"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Get your HuggingFace access token
+              </a>
+            </div>
+          )}
+        </div>
         {/* AI IMAGE GENERATOR */}
-        <div className="w-full mt-4">
+        <div className="w-full mt-2">
           <div className="flex flex-col space-y-2">
             <label className="text-white font-medium" htmlFor="image-prompt">
               Enter your image description
@@ -140,6 +229,13 @@ const Imaging = () => {
             </div>
           )}
         </div>
+        {provider === "huggingface" && (
+          <div className="mt-4 text-center text-xs text-blue-200 bg-slate-900/60 p-2 rounded">
+            <b>Note:</b> The HuggingFace FLUX.1-dev model requires you to set your personal access token.<br />
+            If you don't have an API key, <a className="underline" href="https://huggingface.co/settings/tokens" target="_blank" rel="noopener noreferrer">get it here</a>.<br />
+            Please be aware of usage limits on the free tier.
+          </div>
+        )}
       </Card>
     </div>
   );
