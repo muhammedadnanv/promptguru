@@ -107,6 +107,7 @@ export const usePromptHistory = () => {
             transformed_content: transformedContent,
             provider: provider,
             model_used: modelUsed,
+            user_id: GLOBAL_USER_ID, // <-- Added this line
           },
         ])
         .select()
