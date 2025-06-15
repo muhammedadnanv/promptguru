@@ -12,15 +12,14 @@ const VoiceRecorder = ({ onTranscript }: VoiceRecorderProps) => {
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSupported, setIsSupported] = useState(true);
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const { toast } = useToast();
 
   const startRecording = async () => {
     // Check for speech recognition support
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const SpeechRecognitionAPI = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     
-    if (!SpeechRecognition) {
+    if (!SpeechRecognitionAPI) {
       setIsSupported(false);
       toast({
         title: "Not supported",
@@ -34,7 +33,7 @@ const VoiceRecorder = ({ onTranscript }: VoiceRecorderProps) => {
       // Request microphone permission
       await navigator.mediaDevices.getUserMedia({ audio: true });
       
-      const recognition = new SpeechRecognition();
+      const recognition = new SpeechRecognitionAPI();
       recognitionRef.current = recognition;
       
       recognition.continuous = true;
@@ -43,7 +42,7 @@ const VoiceRecorder = ({ onTranscript }: VoiceRecorderProps) => {
       
       let finalTranscript = '';
       
-      recognition.onresult = (event) => {
+      recognition.onresult = (event: any) => {
         let interimTranscript = '';
         
         for (let i = event.resultIndex; i < event.results.length; i++) {
@@ -89,7 +88,7 @@ const VoiceRecorder = ({ onTranscript }: VoiceRecorderProps) => {
         }, 500);
       };
       
-      recognition.onerror = (event) => {
+      recognition.onerror = (event: any) => {
         console.error('Speech recognition error:', event.error);
         setIsRecording(false);
         setIsProcessing(false);
