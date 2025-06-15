@@ -1,6 +1,4 @@
-
-import { useState, useEffect } from "react";
-import { useAuth } from "@/contexts/AuthContext";
+import { useState } from "react";
 import { useSupabaseApiKeys } from "@/hooks/useSupabaseApiKeys";
 import { usePromptHistory } from "@/hooks/usePromptHistory";
 import Header from "../components/Header";
@@ -9,7 +7,6 @@ import PromptFrameworkSelector from "../components/PromptFrameworkSelector";
 import AIModelSelector from "../components/AIModelSelector";
 import PromptTransformer from "../components/PromptTransformer";
 import APIKeyManager from "../components/APIKeyManager";
-import UserMenu from "../components/UserMenu";
 import WhatsAppWidget from "../components/WhatsAppWidget";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -18,7 +15,6 @@ import { CheckCircle, AlertCircle, History } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const Index = () => {
-  const { user } = useAuth();
   const { apiKeys, saveApiKey, deleteApiKey } = useSupabaseApiKeys();
   const { prompts, savePrompt, saveTransformation, deletePrompt } = usePromptHistory();
   const [inputText, setInputText] = useState("");
@@ -77,7 +73,6 @@ const Index = () => {
         <div className="container mx-auto px-4 py-4">
           <div className="flex justify-between items-center mb-4 md:mb-8">
             <Header />
-            <UserMenu />
           </div>
         </div>
         
