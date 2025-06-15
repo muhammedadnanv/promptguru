@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Copy, Wand2, ArrowRight, Check } from "lucide-react";
+import { Copy, Wand2, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { transformPrompt } from "../utils/promptFrameworks";
 
@@ -34,28 +34,45 @@ const PromptTransformer = ({ inputText, framework, model, onTransformed }: Promp
     
     // Simulate API call delay
     setTimeout(() => {
-      const result = transformPrompt(inputText, framework, model);
-      setTransformedPrompt(result);
-      onTransformed(result);
-      setIsTransforming(false);
-      
-      toast({
-        title: "Prompt transformed!",
-        description: `Successfully optimized using ${framework} framework.`,
-      });
+      try {
+        const result = transformPrompt(inputText, framework, model);
+        setTransformedPrompt(result);
+        onTransformed(result);
+        setIsTransforming(false);
+        
+        toast({
+          title: "Prompt transformed!",
+          description: `Successfully optimized using ${framework} framework.`,
+        });
+      } catch (error) {
+        setIsTransforming(false);
+        toast({
+          title: "Transform failed",
+          description: "There was an error transforming your prompt. Please try again.",
+          variant: "destructive",
+        });
+      }
     }, 2000);
   };
 
   const handleCopy = async () => {
     if (transformedPrompt) {
-      await navigator.clipboard.writeText(transformedPrompt);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-      
-      toast({
-        title: "Copied!",
-        description: "Optimized prompt copied to clipboard.",
-      });
+      try {
+        await navigator.clipboard.writeText(transformedPrompt);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+        
+        toast({
+          title: "Copied!",
+          description: "Optimized prompt copied to clipboard.",
+        });
+      } catch (error) {
+        toast({
+          title: "Copy failed",
+          description: "Could not copy to clipboard. Please try selecting and copying manually.",
+          variant: "destructive",
+        });
+      }
     }
   };
 
@@ -122,7 +139,7 @@ const PromptTransformer = ({ inputText, framework, model, onTransformed }: Promp
                 </div>
               ) : transformedPrompt ? (
                 <>
-                  <p className="text-gray-300 leading-relaxed pr-12">
+                  <p className="text-gray-300 leading-relaxed pr-12 whitespace-pre-wrap">
                     {transformedPrompt}
                   </p>
                   <Button
