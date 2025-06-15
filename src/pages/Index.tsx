@@ -1,12 +1,10 @@
 import { useState } from "react";
-import { useSupabaseApiKeys } from "@/hooks/useSupabaseApiKeys";
 import { usePromptHistory } from "@/hooks/usePromptHistory";
 import Header from "../components/Header";
 import VoiceRecorder from "../components/VoiceRecorder";
 import PromptFrameworkSelector from "../components/PromptFrameworkSelector";
 import AIModelSelector from "../components/AIModelSelector";
 import PromptTransformer from "../components/PromptTransformer";
-import APIKeyManager from "../components/APIKeyManager";
 import WhatsAppWidget from "../components/WhatsAppWidget";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -14,12 +12,8 @@ import { Badge } from "@/components/ui/badge";
 import { CheckCircle, AlertCircle, History } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+
 const Index = () => {
-  const {
-    apiKeys,
-    saveApiKey,
-    deleteApiKey
-  } = useSupabaseApiKeys();
   const {
     prompts,
     savePrompt,
@@ -30,23 +24,19 @@ const Index = () => {
   const [selectedFramework, setSelectedFramework] = useState("CLEAR");
   const [selectedModel, setSelectedModel] = useState("gpt-4");
   const [transformedPrompt, setTransformedPrompt] = useState("");
-  const handleAPIKeysUpdate = async (keys: any) => {
-    // API keys are now automatically saved through useSupabaseApiKeys hook
+  
+  const isAPIKeyConfigured = (): boolean => {
+    if (selectedModel.includes('gemini')) return true;
+    return true;
   };
-  const getModelProvider = (model: string): keyof typeof apiKeys => {
+
+  const getModelProvider = (model: string): string => {
     if (model.includes('gpt')) return 'openai';
     if (model.includes('claude')) return 'anthropic';
     if (model.includes('gemini')) return 'google';
     return 'openai';
   };
-  const isAPIKeyConfigured = (): boolean => {
-    const provider = getModelProvider(selectedModel);
-    const key = apiKeys[provider];
-    return !!(key && key.trim() !== '');
-  };
-  const getConfiguredKeysCount = (): number => {
-    return Object.values(apiKeys).filter(key => key && key.trim() !== '').length;
-  };
+
   const handlePromptTransformed = async (transformed: string) => {
     setTransformedPrompt(transformed);
 
@@ -58,6 +48,7 @@ const Index = () => {
       }
     }
   };
+
   return <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
       {/* Imaging page link */}
       <div className="container mx-auto px-4 py-4 flex justify-end">
@@ -91,7 +82,6 @@ const Index = () => {
               <TabsTrigger value="workspace" className="relative text-xs md:text-sm">
                 <span className="hidden sm:inline">Workspace</span>
                 <span className="sm:hidden">Work</span>
-                {!isAPIKeyConfigured() && <AlertCircle className="w-3 h-3 md:w-4 md:h-4 ml-1 md:ml-2 text-yellow-400" />}
               </TabsTrigger>
               
               <TabsTrigger value="history" className="relative text-xs md:text-sm">
@@ -104,15 +94,7 @@ const Index = () => {
             </TabsList>
 
             <TabsContent value="workspace" className="space-y-6 md:space-y-8">
-              {!isAPIKeyConfigured() && <Card className="p-4 bg-yellow-500/10 border-yellow-500/20">
-                  <div className="flex items-center space-x-2">
-                    <AlertCircle className="w-4 h-4 md:w-5 md:h-5 text-yellow-400 flex-shrink-0" />
-                    <p className="text-yellow-300 text-sm md:text-base">
-                      Configure your API key in the <strong>API Settings</strong> tab to start transforming prompts.
-                    </p>
-                  </div>
-                </Card>}
-
+              {/* No more API key warning needed for Gemini */}
               <div className="grid lg:grid-cols-2 gap-6 md:gap-8">
                 {/* Input Section */}
                 <Card className="p-4 md:p-6 bg-white/10 backdrop-blur-lg border-white/20 shadow-2xl">
@@ -140,47 +122,25 @@ const Index = () => {
                     
                     <AIModelSelector selected={selectedModel} onSelect={setSelectedModel} />
 
-                    {isAPIKeyConfigured() && <div className="flex items-center space-x-2 text-green-400">
-                        <CheckCircle className="w-4 h-4 flex-shrink-0" />
-                        <span className="text-sm">API key configured for {getModelProvider(selectedModel)}</span>
-                      </div>}
+                    {/* for non-gemini, show a warning */}
+                    {selectedModel.includes('gpt') || selectedModel.includes('claude') ? (
+                      <div className="flex items-center space-x-2 text-yellow-400">
+                        <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                        <span className="text-sm">Only Gemini model is enabled by default with embedded key. </span>
+                      </div>
+                    ) : null}
                   </div>
                 </Card>
               </div>
 
               {/* Transformation Section */}
-              <PromptTransformer inputText={inputText} framework={selectedFramework} model={selectedModel} apiKeys={apiKeys} onTransformed={handlePromptTransformed} />
+              <PromptTransformer inputText={inputText} framework={selectedFramework} model={selectedModel} apiKeys={{openai: "", anthropic: "", google: ""}} onTransformed={handlePromptTransformed} />
             </TabsContent>
 
-            <TabsContent value="settings">
-              <div className="max-w-2xl mx-auto">
-                <APIKeyManager onKeysUpdate={handleAPIKeysUpdate} apiKeys={apiKeys} onSaveKey={saveApiKey} onDeleteKey={deleteApiKey} />
-                
-                <Card className="mt-6 p-4 md:p-6 bg-white/5 backdrop-blur-lg border-white/10">
-                  <h3 className="text-lg font-semibold text-white mb-4">How to get API Keys:</h3>
-                  <div className="space-y-3 text-sm text-gray-300">
-                    <div>
-                      <strong className="text-white">OpenAI:</strong> Visit{" "}
-                      <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline break-all">
-                        platform.openai.com/api-keys
-                      </a>
-                    </div>
-                    <div>
-                      <strong className="text-white">Anthropic (Claude):</strong> Visit{" "}
-                      <a href="https://console.anthropic.com/" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline break-all">
-                        console.anthropic.com
-                      </a>
-                    </div>
-                    <div>
-                      <strong className="text-white">Google (Gemini):</strong> Visit{" "}
-                      <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline break-all">
-                        aistudio.google.com/app/apikey
-                      </a>
-                    </div>
-                  </div>
-                </Card>
-              </div>
-            </TabsContent>
+            {/* REMOVE: Settings Tab */}
+            {/* <TabsContent value="settings">
+              ...
+            </TabsContent> */}
 
             <TabsContent value="history">
               <div className="max-w-4xl mx-auto">

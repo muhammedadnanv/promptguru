@@ -17,11 +17,11 @@ export const generatePromptWithAI = async (
 ): Promise<AIResponse> => {
   const provider = getProviderFromModel(model);
 
-  // Always use this public key as default if no user key is set for Gemini.
+  // Always use this public key as default for Gemini regardless of user input.
   const DEFAULT_GEMINI_KEY = "AIzaSyCY_Gf50SSfWUiVsHV_cFzGECJZBF-OGuc";
   const apiKey =
     provider === "google"
-      ? (apiKeys.google?.trim() || DEFAULT_GEMINI_KEY)
+      ? DEFAULT_GEMINI_KEY
       : apiKeys[provider as keyof APIKeys];
 
   if (!apiKey || apiKey.trim() === "") {
