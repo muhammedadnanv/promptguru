@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { usePromptHistory } from "@/hooks/usePromptHistory";
 import Header from "../components/Header";
@@ -9,9 +10,11 @@ import WhatsAppWidget from "../components/WhatsAppWidget";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, AlertCircle, History } from "lucide-react";
+import { CheckCircle, AlertCircle, History, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import APIKeyManager from "@/components/APIKeyManager";
+import { useSupabaseApiKeys } from "@/hooks/useSupabaseApiKeys";
 
 const Index = () => {
   const {
@@ -24,7 +27,16 @@ const Index = () => {
   const [selectedFramework, setSelectedFramework] = useState("CLEAR");
   const [selectedModel, setSelectedModel] = useState("gpt-4");
   const [transformedPrompt, setTransformedPrompt] = useState("");
-  
+
+  // Supabase API key hook for APIKeyManager
+  const {
+    apiKeys,
+    loading: apiKeyLoading,
+    saveApiKey,
+    deleteApiKey,
+    refreshKeys
+  } = useSupabaseApiKeys();
+
   const isAPIKeyConfigured = (): boolean => {
     if (selectedModel.includes('gemini')) return true;
     return true;
@@ -78,7 +90,7 @@ const Index = () => {
           </div>
 
           <Tabs defaultValue="workspace" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 mb-6 md:mb-8">
+            <TabsList className="grid w-full grid-cols-4 mb-6 md:mb-8">
               <TabsTrigger value="workspace" className="relative text-xs md:text-sm">
                 <span className="hidden sm:inline">Workspace</span>
                 <span className="sm:hidden">Work</span>
@@ -90,6 +102,12 @@ const Index = () => {
                 <Badge variant="secondary" className="ml-1 md:ml-2 text-xs">
                   {prompts.length}
                 </Badge>
+              </TabsTrigger>
+
+              <TabsTrigger value="api-settings" className="relative text-xs md:text-sm">
+                <Settings className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />
+                <span className="hidden sm:inline">API Settings</span>
+                <span className="sm:hidden">API</span>
               </TabsTrigger>
             </TabsList>
 
@@ -135,6 +153,18 @@ const Index = () => {
 
               {/* Transformation Section */}
               <PromptTransformer inputText={inputText} framework={selectedFramework} model={selectedModel} apiKeys={{openai: "", anthropic: "", google: ""}} onTransformed={handlePromptTransformed} />
+            </TabsContent>
+
+            {/* API Settings Tab */}
+            <TabsContent value="api-settings">
+              <div className="max-w-2xl mx-auto">
+                <APIKeyManager
+                  onKeysUpdate={refreshKeys}
+                  apiKeys={apiKeys}
+                  onSaveKey={saveApiKey}
+                  onDeleteKey={deleteApiKey}
+                />
+              </div>
             </TabsContent>
 
             {/* REMOVE: Settings Tab */}
@@ -192,3 +222,4 @@ const Index = () => {
     </div>;
 };
 export default Index;
+
