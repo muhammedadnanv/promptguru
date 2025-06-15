@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Header from "../components/Header";
 import VoiceRecorder from "../components/VoiceRecorder";
 import PromptFrameworkSelector from "../components/PromptFrameworkSelector";
@@ -8,6 +8,8 @@ import PromptTransformer from "../components/PromptTransformer";
 import APIKeyManager from "../components/APIKeyManager";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { CheckCircle, AlertCircle } from "lucide-react";
 
 interface APIKeys {
   openai: string;
@@ -21,13 +23,47 @@ const Index = () => {
   const [selectedModel, setSelectedModel] = useState("gpt-4");
   const [transformedPrompt, setTransformedPrompt] = useState("");
   const [apiKeys, setApiKeys] = useState<APIKeys>(() => {
-    const saved = localStorage.getItem('ai-api-keys');
-    return saved ? JSON.parse(saved) : { openai: '', anthropic: '', google: '' };
+    try {
+      const saved = localStorage.getItem('ai-api-keys');
+      return saved ? JSON.parse(saved) : { openai: '', anthropic: '', google: '' };
+    } catch {
+      return { openai: '', anthropic: '', google: '' };
+    }
   });
 
   const handleAPIKeysUpdate = (keys: APIKeys) => {
     setApiKeys(keys);
   };
+
+  const getModelProvider = (model: string): keyof APIKeys => {
+    if (model.includes('gpt')) return 'openai';
+    if (model.includes('claude')) return 'anthropic';
+    if (model.includes('gemini')) return 'google';
+    return 'openai';
+  };
+
+  const isAPIKeyConfigured = (): boolean => {
+    const provider = getModelProvider(selectedModel);
+    const key = apiKeys[provider];
+    return !!(key && key.trim() !== '');
+  };
+
+  const getConfiguredKeysCount = (): number => {
+    return Object.values(apiKeys).filter(key => key && key.trim() !== '').length;
+  };
+
+  // Load API keys on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('ai-api-keys');
+      if (saved) {
+        const keys = JSON.parse(saved);
+        setApiKeys(keys);
+      }
+    } catch (error) {
+      console.error('Failed to load API keys:', error);
+    }
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
@@ -47,18 +83,42 @@ const Index = () => {
               Transform Ideas into Perfect Prompts
             </h1>
             <p className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
-              Use advanced prompt frameworks and AI APIs to turn your casual thoughts and voice notes into 
+              Use advanced prompt frameworks and real AI APIs to turn your casual thoughts and voice notes into 
               structured, optimized prompts that get better AI results.
             </p>
           </div>
 
           <Tabs defaultValue="workspace" className="w-full">
             <TabsList className="grid w-full grid-cols-2 mb-8">
-              <TabsTrigger value="workspace">Workspace</TabsTrigger>
-              <TabsTrigger value="settings">API Settings</TabsTrigger>
+              <TabsTrigger value="workspace" className="relative">
+                Workspace
+                {!isAPIKeyConfigured() && (
+                  <AlertCircle className="w-4 h-4 ml-2 text-yellow-400" />
+                )}
+              </TabsTrigger>
+              <TabsTrigger value="settings" className="relative">
+                API Settings
+                <Badge 
+                  variant={getConfiguredKeysCount() > 0 ? "default" : "destructive"}
+                  className="ml-2 text-xs"
+                >
+                  {getConfiguredKeysCount()}/3
+                </Badge>
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="workspace" className="space-y-8">
+              {!isAPIKeyConfigured() && (
+                <Card className="p-4 bg-yellow-500/10 border-yellow-500/20">
+                  <div className="flex items-center space-x-2">
+                    <AlertCircle className="w-5 h-5 text-yellow-400" />
+                    <p className="text-yellow-300">
+                      Configure your API key in the <strong>API Settings</strong> tab to start transforming prompts.
+                    </p>
+                  </div>
+                </Card>
+              )}
+
               <div className="grid lg:grid-cols-2 gap-8">
                 {/* Input Section */}
                 <Card className="p-6 bg-white/10 backdrop-blur-lg border-white/20 shadow-2xl">
@@ -76,6 +136,9 @@ const Index = () => {
                       placeholder="e.g., I want to write a blog post about sustainable gardening but make it engaging for beginners..."
                       className="w-full h-32 p-4 bg-white/5 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
                     />
+                    <p className="text-xs text-gray-400 mt-2">
+                      {inputText.length} characters
+                    </p>
                   </div>
                 </Card>
 
@@ -93,6 +156,13 @@ const Index = () => {
                       selected={selectedModel}
                       onSelect={setSelectedModel}
                     />
+
+                    {isAPIKeyConfigured() && (
+                      <div className="flex items-center space-x-2 text-green-400">
+                        <CheckCircle className="w-4 h-4" />
+                        <span className="text-sm">API key configured for {getModelProvider(selectedModel)}</span>
+                      </div>
+                    )}
                   </div>
                 </Card>
               </div>

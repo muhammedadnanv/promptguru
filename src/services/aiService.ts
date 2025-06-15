@@ -19,14 +19,23 @@ export const generatePromptWithAI = async (
   const provider = getProviderFromModel(model);
   const apiKey = apiKeys[provider as keyof APIKeys];
 
-  if (!apiKey) {
+  if (!apiKey || apiKey.trim() === '') {
     return {
       content: "",
-      error: `Please configure your ${provider} API key first.`
+      error: `Please configure your ${getProviderName(provider)} API key in the API Settings tab first.`
+    };
+  }
+
+  if (!inputText || inputText.trim() === '') {
+    return {
+      content: "",
+      error: "Please provide some input text to transform."
     };
   }
 
   try {
+    console.log(`Calling ${provider} API with model ${model}`);
+    
     switch (provider) {
       case 'openai':
         return await callOpenAI(inputText, framework, model, apiKey);
@@ -41,9 +50,10 @@ export const generatePromptWithAI = async (
         };
     }
   } catch (error) {
+    console.error('AI Service Error:', error);
     return {
       content: "",
-      error: error instanceof Error ? error.message : "Unknown error occurred"
+      error: error instanceof Error ? error.message : "Unknown error occurred while calling AI API"
     };
   }
 };
@@ -52,10 +62,41 @@ const getProviderFromModel = (model: string): string => {
   if (model.includes('gpt')) return 'openai';
   if (model.includes('claude')) return 'anthropic';
   if (model.includes('gemini')) return 'google';
-  return 'openai'; // default
+  return 'openai';
+};
+
+const getProviderName = (provider: string): string => {
+  switch (provider) {
+    case 'openai': return 'OpenAI';
+    case 'anthropic': return 'Anthropic';
+    case 'google': return 'Google';
+    default: return provider;
+  }
+};
+
+const createSystemPrompt = (framework: string): string => {
+  const frameworkDescriptions = {
+    'CLEAR': 'Context, Length, Examples, Audience, Role - structure the prompt with clear context, specify desired length, provide examples, define the target audience, and establish the AI\'s role.',
+    'STAR': 'Situation, Task, Action, Result - describe the situation, define the task, specify the action needed, and outline the expected result.',
+    'STaC': 'Situation, Task, Context - briefly describe the situation, define the specific task, and provide relevant context.',
+    'PEACH': 'Purpose, Examples, Audience, Context, Hope - state the purpose clearly, provide relevant examples, define the audience, give context, and express the hoped-for outcome.'
+  };
+
+  return `You are an expert prompt engineer. Transform the user's casual input into a well-structured, professional prompt using the ${framework} framework (${frameworkDescriptions[framework as keyof typeof frameworkDescriptions] || 'structured approach'}). 
+
+Make the prompt:
+- Clear and specific
+- Actionable and detailed
+- Well-organized according to the ${framework} structure
+- Professional yet engaging
+- Optimized for AI interaction
+
+Respond with ONLY the transformed prompt, no explanations or meta-commentary.`;
 };
 
 const callOpenAI = async (inputText: string, framework: string, model: string, apiKey: string): Promise<AIResponse> => {
+  const modelName = model === 'gpt-4' ? 'gpt-4' : 'gpt-3.5-turbo';
+  
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -63,15 +104,15 @@ const callOpenAI = async (inputText: string, framework: string, model: string, a
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: model === 'gpt-4' ? 'gpt-4' : 'gpt-3.5-turbo',
+      model: modelName,
       messages: [
         {
           role: 'system',
-          content: `You are an expert prompt engineer. Transform the user's casual input into a well-structured prompt using the ${framework} framework. Be specific, clear, and actionable.`
+          content: createSystemPrompt(framework)
         },
         {
           role: 'user',
-          content: `Transform this casual idea into a structured prompt using the ${framework} framework: "${inputText}"`
+          content: `Transform this input: "${inputText}"`
         }
       ],
       max_tokens: 1000,
@@ -80,14 +121,19 @@ const callOpenAI = async (inputText: string, framework: string, model: string, a
   });
 
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error?.message || 'OpenAI API error');
+    const errorData = await response.json().catch(() => ({}));
+    const errorMessage = errorData.error?.message || `OpenAI API error: ${response.status} ${response.statusText}`;
+    throw new Error(errorMessage);
   }
 
   const data = await response.json();
-  return {
-    content: data.choices[0]?.message?.content || "No response generated"
-  };
+  const content = data.choices?.[0]?.message?.content;
+  
+  if (!content) {
+    throw new Error('No content received from OpenAI API');
+  }
+
+  return { content: content.trim() };
 };
 
 const callAnthropic = async (inputText: string, framework: string, model: string, apiKey: string): Promise<AIResponse> => {
@@ -104,21 +150,26 @@ const callAnthropic = async (inputText: string, framework: string, model: string
       messages: [
         {
           role: 'user',
-          content: `You are an expert prompt engineer. Transform this casual idea: "${inputText}" into a well-structured prompt using the ${framework} framework. Be specific, clear, and actionable.`
+          content: `${createSystemPrompt(framework)}\n\nTransform this input: "${inputText}"`
         }
       ],
     }),
   });
 
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error?.message || 'Anthropic API error');
+    const errorData = await response.json().catch(() => ({}));
+    const errorMessage = errorData.error?.message || `Anthropic API error: ${response.status} ${response.statusText}`;
+    throw new Error(errorMessage);
   }
 
   const data = await response.json();
-  return {
-    content: data.content[0]?.text || "No response generated"
-  };
+  const content = data.content?.[0]?.text;
+  
+  if (!content) {
+    throw new Error('No content received from Anthropic API');
+  }
+
+  return { content: content.trim() };
 };
 
 const callGoogle = async (inputText: string, framework: string, model: string, apiKey: string): Promise<AIResponse> => {
@@ -130,7 +181,7 @@ const callGoogle = async (inputText: string, framework: string, model: string, a
     body: JSON.stringify({
       contents: [{
         parts: [{
-          text: `You are an expert prompt engineer. Transform this casual idea: "${inputText}" into a well-structured prompt using the ${framework} framework. Be specific, clear, and actionable.`
+          text: `${createSystemPrompt(framework)}\n\nTransform this input: "${inputText}"`
         }]
       }],
       generationConfig: {
@@ -141,12 +192,17 @@ const callGoogle = async (inputText: string, framework: string, model: string, a
   });
 
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error?.message || 'Google AI API error');
+    const errorData = await response.json().catch(() => ({}));
+    const errorMessage = errorData.error?.message || `Google AI API error: ${response.status} ${response.statusText}`;
+    throw new Error(errorMessage);
   }
 
   const data = await response.json();
-  return {
-    content: data.candidates[0]?.content?.parts[0]?.text || "No response generated"
-  };
+  const content = data.candidates?.[0]?.content?.parts?.[0]?.text;
+  
+  if (!content) {
+    throw new Error('No content received from Google AI API');
+  }
+
+  return { content: content.trim() };
 };

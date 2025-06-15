@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Copy, Wand2, Check } from "lucide-react";
+import { Copy, Wand2, Check, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { generatePromptWithAI } from "../services/aiService";
 import TextToSpeech from "./TextToSpeech";
@@ -26,10 +26,27 @@ const PromptTransformer = ({ inputText, framework, model, apiKeys, onTransformed
   const [transformedPrompt, setTransformedPrompt] = useState("");
   const [isTransforming, setIsTransforming] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
+  const getModelProvider = (model: string): keyof APIKeys => {
+    if (model.includes('gpt')) return 'openai';
+    if (model.includes('claude')) return 'anthropic';
+    if (model.includes('gemini')) return 'google';
+    return 'openai';
+  };
+
+  const isAPIKeyConfigured = (): boolean => {
+    const provider = getModelProvider(model);
+    const key = apiKeys[provider];
+    return !!(key && key.trim() !== '');
+  };
+
   const handleTransform = async () => {
+    setError(null);
+    
     if (!inputText.trim()) {
+      setError("Please provide some text or record a voice note first.");
       toast({
         title: "Input required",
         description: "Please provide some text or record a voice note first.",
@@ -38,36 +55,70 @@ const PromptTransformer = ({ inputText, framework, model, apiKeys, onTransformed
       return;
     }
 
+    if (!isAPIKeyConfigured()) {
+      const provider = getModelProvider(model);
+      const providerNames = {
+        openai: 'OpenAI',
+        anthropic: 'Anthropic',
+        google: 'Google'
+      };
+      
+      setError(`Please configure your ${providerNames[provider]} API key in the API Settings tab.`);
+      toast({
+        title: "API Key required",
+        description: `Please configure your ${providerNames[provider]} API key in the API Settings tab.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsTransforming(true);
     
     try {
+      console.log('Starting prompt transformation...', { model, framework, inputLength: inputText.length });
+      
       const result = await generatePromptWithAI(inputText, framework, model, apiKeys);
       
       if (result.error) {
+        setError(result.error);
         toast({
           title: "Transform failed",
           description: result.error,
           variant: "destructive",
         });
-        setIsTransforming(false);
+        return;
+      }
+
+      if (!result.content || result.content.trim() === '') {
+        setError("No content was generated. Please try again.");
+        toast({
+          title: "Transform failed",
+          description: "No content was generated. Please try again.",
+          variant: "destructive",
+        });
         return;
       }
 
       setTransformedPrompt(result.content);
       onTransformed(result.content);
-      setIsTransforming(false);
+      setError(null);
       
       toast({
         title: "Prompt transformed!",
         description: `Successfully optimized using ${framework} framework with ${model}.`,
       });
     } catch (error) {
-      setIsTransforming(false);
+      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+      setError(errorMessage);
+      console.error('Transform error:', error);
+      
       toast({
         title: "Transform failed",
-        description: "There was an error transforming your prompt. Please check your API keys and try again.",
+        description: errorMessage,
         variant: "destructive",
       });
+    } finally {
+      setIsTransforming(false);
     }
   };
 
@@ -76,7 +127,6 @@ const PromptTransformer = ({ inputText, framework, model, apiKeys, onTransformed
       try {
         await navigator.clipboard.writeText(transformedPrompt);
         setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
         
         toast({
           title: "Copied!",
@@ -99,12 +149,17 @@ const PromptTransformer = ({ inputText, framework, model, apiKeys, onTransformed
     }
   }, [copied]);
 
+  // Clear error when inputs change
+  useEffect(() => {
+    setError(null);
+  }, [inputText, model, framework]);
+
   return (
     <div className="space-y-6">
       <div className="text-center">
         <Button
           onClick={handleTransform}
-          disabled={isTransforming || !inputText.trim()}
+          disabled={isTransforming || !inputText.trim() || !isAPIKeyConfigured()}
           className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-8 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50"
         >
           {isTransforming ? (
@@ -119,7 +174,23 @@ const PromptTransformer = ({ inputText, framework, model, apiKeys, onTransformed
             </>
           )}
         </Button>
+        
+        {!isAPIKeyConfigured() && (
+          <p className="text-sm text-yellow-400 mt-2 flex items-center justify-center">
+            <AlertCircle className="w-4 h-4 mr-1" />
+            Configure API key for {getModelProvider(model)} in Settings
+          </p>
+        )}
       </div>
+
+      {error && (
+        <Card className="p-4 bg-red-500/10 border-red-500/20">
+          <div className="flex items-center space-x-2">
+            <AlertCircle className="w-5 h-5 text-red-400" />
+            <p className="text-red-300">{error}</p>
+          </div>
+        </Card>
+      )}
 
       {(transformedPrompt || isTransforming) && (
         <div className="grid lg:grid-cols-2 gap-6">
