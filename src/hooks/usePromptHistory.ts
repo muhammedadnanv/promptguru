@@ -4,7 +4,8 @@ import { supabase } from '@/integrations/supabase/client';
 
 interface Prompt {
   id: string;
-  title: string | null;
+  user_id: string;
+  title: string;
   content: string;
   framework: string;
   model: string;
@@ -14,63 +15,74 @@ interface Prompt {
 
 interface Transformation {
   id: string;
+  prompt_id: string;
   transformed_content: string;
-  provider: string;
+  ai_provider: string;
   model_used: string;
-  processing_time: number | null;
   created_at: string;
 }
 
-// Demo Mode: All prompts are global (not per-user)
-const globalId = 'global_public_user';
-
 export const usePromptHistory = () => {
   const [prompts, setPrompts] = useState<Prompt[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  // Use a proper UUID format for the global user
+  const GLOBAL_USER_ID = "00000000-0000-0000-0000-000000000001";
 
   const loadPrompts = async () => {
-    setLoading(true);
     try {
+      console.log("Loading prompts for user:", GLOBAL_USER_ID);
       const { data, error } = await supabase
         .from('prompts')
         .select(`
           *,
-          transformations (*)
+          transformations(*)
         `)
-        .eq('user_id', globalId)
+        .eq('user_id', GLOBAL_USER_ID)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error loading prompts:', error);
+        throw error;
+      }
 
+      console.log("Loaded prompts:", data);
       setPrompts(data || []);
     } catch (error) {
       console.error('Error loading prompts:', error);
+      setPrompts([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const savePrompt = async (
-    content: string,
-    framework: string,
-    model: string,
-    title?: string
-  ) => {
+  const savePrompt = async (content: string, framework: string, model: string): Promise<Prompt | null> => {
     try {
+      console.log("Saving prompt:", { content: content.substring(0, 50), framework, model });
+      
+      const title = content.length > 50 ? content.substring(0, 50) + '...' : content;
+      
       const { data, error } = await supabase
         .from('prompts')
-        .insert({
-          user_id: globalId,
-          content,
-          framework,
-          model,
-          title: title || `Prompt - ${new Date().toLocaleDateString()}`
-        })
+        .insert([
+          {
+            user_id: GLOBAL_USER_ID,
+            title,
+            content,
+            framework,
+            model,
+          },
+        ])
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error saving prompt:', error);
+        throw error;
+      }
 
+      console.log("Saved prompt:", data);
+      await loadPrompts(); // Reload prompts
       return data;
     } catch (error) {
       console.error('Error saving prompt:', error);
@@ -79,31 +91,34 @@ export const usePromptHistory = () => {
   };
 
   const saveTransformation = async (
-    promptId: string,
-    transformedContent: string,
-    provider: string,
-    modelUsed: string,
-    processingTime?: number
-  ) => {
+    promptId: string, 
+    transformedContent: string, 
+    aiProvider: string, 
+    modelUsed: string
+  ): Promise<Transformation | null> => {
     try {
+      console.log("Saving transformation:", { promptId, transformedContent: transformedContent.substring(0, 50), aiProvider, modelUsed });
+      
       const { data, error } = await supabase
         .from('transformations')
-        .insert({
-          prompt_id: promptId,
-          user_id: globalId,
-          transformed_content: transformedContent,
-          provider,
-          model_used: modelUsed,
-          processing_time: processingTime
-        })
+        .insert([
+          {
+            prompt_id: promptId,
+            transformed_content: transformedContent,
+            ai_provider: aiProvider,
+            model_used: modelUsed,
+          },
+        ])
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error saving transformation:', error);
+        throw error;
+      }
 
-      // Refresh prompts to include the new transformation
-      loadPrompts();
-
+      console.log("Saved transformation:", data);
+      await loadPrompts(); // Reload prompts
       return data;
     } catch (error) {
       console.error('Error saving transformation:', error);
@@ -111,17 +126,22 @@ export const usePromptHistory = () => {
     }
   };
 
-  const deletePrompt = async (promptId: string) => {
+  const deletePrompt = async (id: string) => {
     try {
+      console.log("Deleting prompt:", id);
+      
       const { error } = await supabase
         .from('prompts')
         .delete()
-        .eq('id', promptId)
-        .eq('user_id', globalId);
+        .eq('id', id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error deleting prompt:', error);
+        throw error;
+      }
 
-      setPrompts(prev => prev.filter(p => p.id !== promptId));
+      console.log("Deleted prompt:", id);
+      await loadPrompts(); // Reload prompts
     } catch (error) {
       console.error('Error deleting prompt:', error);
     }
@@ -129,7 +149,6 @@ export const usePromptHistory = () => {
 
   useEffect(() => {
     loadPrompts();
-    // eslint-disable-next-line
   }, []);
 
   return {
@@ -138,7 +157,6 @@ export const usePromptHistory = () => {
     savePrompt,
     saveTransformation,
     deletePrompt,
-    refreshPrompts: loadPrompts
+    refreshPrompts: loadPrompts,
   };
 };
-
