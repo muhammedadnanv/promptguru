@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { usePromptHistory } from "@/hooks/usePromptHistory";
 import Header from "../components/Header";
@@ -15,19 +16,17 @@ import { Link } from "react-router-dom";
 import APIKeyManager from "@/components/APIKeyManager";
 import { useSupabaseApiKeys } from "@/hooks/useSupabaseApiKeys";
 
+// NEW: Helper for responsive classnames
+const responsiveCard =
+  "p-3 xs:p-4 md:p-6 bg-white/10 backdrop-blur-lg border-white/20 shadow-2xl rounded-2xl md:rounded-xl";
+
 const Index = () => {
-  const {
-    prompts,
-    savePrompt,
-    saveTransformation,
-    deletePrompt
-  } = usePromptHistory();
+  const { prompts, savePrompt, saveTransformation, deletePrompt } = usePromptHistory();
   const [inputText, setInputText] = useState("");
   const [selectedFramework, setSelectedFramework] = useState("CLEAR");
   const [selectedModel, setSelectedModel] = useState("anthropic/claude-3.5-sonnet");
   const [transformedPrompt, setTransformedPrompt] = useState("");
 
-  // Supabase API key hook for APIKeyManager
   const {
     apiKeys,
     loading: apiKeyLoading,
@@ -37,13 +36,12 @@ const Index = () => {
   } = useSupabaseApiKeys();
 
   const getModelProvider = (model: string): string => {
-    return 'openrouter'; // Always OpenRouter now
+    return "openrouter";
   };
 
   const handlePromptTransformed = async (transformed: string) => {
     setTransformedPrompt(transformed);
 
-    // Save the prompt and transformation to Supabase
     if (inputText.trim()) {
       const prompt = await savePrompt(inputText, selectedFramework, selectedModel);
       if (prompt && transformed) {
@@ -55,87 +53,97 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
       {/* Imaging page link */}
-      <div className="container mx-auto px-2 sm:px-4 py-3 flex justify-end">
+      <div className="container mx-auto px-2 xs:px-3 sm:px-4 py-3 flex justify-end">
         <Link
           to="/imaging"
-          className="inline-flex items-center px-3 py-2 md:px-4 md:py-2 rounded-lg bg-purple-600/80 hover:bg-purple-700 text-white font-semibold shadow transition text-sm md:text-base"
+          className="inline-flex items-center px-4 py-3 sm:px-4 sm:py-2 rounded-xl bg-purple-600/80 hover:bg-purple-700 text-white font-semibold shadow transition text-base md:text-base"
         >
-          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
             <path d="M21 15V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h3l1.34 2.68a2 2 0 0 0 1.79 1.12h2.74a2 2 0 0 0 1.79-1.12L16 17h3a2 2 0 0 0 2-2z"></path>
           </svg>
           <span className="hidden xs:inline">Imaging</span>
         </Link>
       </div>
       <div className="relative z-10">
-        <div className="container mx-auto px-2 sm:px-4 py-3">
-          <div className="flex flex-col md:flex-row justify-between items-center mb-4 md:mb-8 gap-3">
+        <div className="container mx-auto px-2 xs:px-3 sm:px-4 py-3">
+          <div className="flex flex-col md:flex-row justify-between items-center mb-4 md:mb-8 gap-4 xs:gap-5">
             <Header />
           </div>
         </div>
-        
-        <main className="container mx-auto px-2 sm:px-4 py-3 md:py-8 max-w-6xl">
+        <main className="container mx-auto px-0 xs:px-2 sm:px-4 py-2 md:py-8 max-w-6xl">
           <div className="text-center mb-8 md:mb-12">
-            <h1 className="text-2xl xs:text-3xl md:text-5xl lg:text-6xl font-bold text-white mb-3 md:mb-6 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent leading-tight">
+            <h1 className="text-3xl xs:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-3 md:mb-6 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent leading-tight">
               Transform Ideas into Perfect Prompts
             </h1>
-            <p className="text-base md:text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed px-2 xs:px-4">
+            <p className="text-base xs:text-lg md:text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed px-2 xs:px-4">
               Use advanced prompt frameworks and AI models via OpenRouter to turn your casual thoughts and voice notes into 
               structured, optimized prompts that get better AI results.
             </p>
           </div>
-
           <Tabs defaultValue="workspace" className="w-full">
-            <TabsList className="grid w-full grid-cols-1 xs:grid-cols-3 gap-2 mb-5 md:mb-8">
-              <TabsTrigger value="workspace" className="relative text-xs md:text-sm px-1 py-2">
+            <TabsList className="grid w-full grid-cols-1 xs:grid-cols-3 gap-3 mb-5 md:mb-8"
+              style={{ touchAction: "manipulation" }}
+            >
+              <TabsTrigger
+                value="workspace"
+                className="relative text-base xs:text-lg md:text-sm px-2 py-3 rounded-lg min-h-[48px]"
+                style={{ minWidth: 48 }}
+              >
                 <span className="hidden sm:inline">Workspace</span>
                 <span className="sm:hidden">Work</span>
               </TabsTrigger>
-              <TabsTrigger value="history" className="relative text-xs md:text-sm px-1 py-2">
-                <History className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />
+              <TabsTrigger
+                value="history"
+                className="relative text-base xs:text-lg md:text-sm px-2 py-3 rounded-lg min-h-[48px]"
+                style={{ minWidth: 48 }}
+              >
+                <History className="w-4 h-4 md:w-5 md:h-5 mr-2" />
                 <span className="hidden sm:inline">History</span>
-                <Badge variant="secondary" className="ml-1 md:ml-2 text-xs">
-                  {prompts.length}
-                </Badge>
+                <Badge variant="secondary" className="ml-2 text-xs">{prompts.length}</Badge>
               </TabsTrigger>
-              <TabsTrigger value="api-settings" className="relative text-xs md:text-sm px-1 py-2">
-                <Settings className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />
+              <TabsTrigger
+                value="api-settings"
+                className="relative text-base xs:text-lg md:text-sm px-2 py-3 rounded-lg min-h-[48px]"
+                style={{ minWidth: 48 }}
+              >
+                <Settings className="w-4 h-4 md:w-5 md:h-5 mr-2" />
                 <span className="hidden sm:inline">API Settings</span>
                 <span className="sm:hidden">API</span>
               </TabsTrigger>
             </TabsList>
-
-            <TabsContent value="workspace" className="space-y-5 md:space-y-8">
+            <TabsContent value="workspace" className="space-y-6 md:space-y-8">
               <div className="flex flex-col lg:grid lg:grid-cols-2 gap-5 md:gap-8">
                 {/* Input Section */}
-                <Card className="p-3 sm:p-4 md:p-6 bg-white/10 backdrop-blur-lg border-white/20 shadow-2xl rounded-xl">
-                  <h2 className="text-lg md:text-2xl font-semibold text-white mb-3 md:mb-6">Input Your Idea</h2>
-                  <VoiceRecorder onTranscript={setInputText} />
-                  <div className="mt-3 md:mt-6">
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Or type your casual idea:
-                    </label>
-                    <textarea 
-                      value={inputText} 
-                      onChange={e => setInputText(e.target.value)} 
-                      placeholder="e.g., I want to write a blog post about sustainable gardening but make it engaging for beginners..." 
-                      className="w-full min-h-[100px] sm:h-32 md:h-32 p-3 md:p-4 bg-white/5 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none text-sm md:text-base" 
-                    />
-                    <p className="text-xs text-gray-400 mt-2">
-                      {inputText.length} characters
-                    </p>
+                <Card className={`${responsiveCard} w-full`}>
+                  <h2 className="text-xl xs:text-2xl md:text-2xl font-semibold text-white mb-4 xs:mb-6">Input Your Idea</h2>
+                  <div className="flex flex-col gap-3 xs:gap-4 sm:gap-6">
+                    <VoiceRecorder onTranscript={setInputText} />
+                    <div>
+                      <label className="block text-base font-medium text-gray-300 mb-2">
+                        Or type your casual idea:
+                      </label>
+                      <textarea
+                        value={inputText}
+                        onChange={e => setInputText(e.target.value)}
+                        placeholder="e.g., I want to write a blog post about sustainable gardening but make it engaging for beginners..."
+                        className="w-full min-h-[100px] xs:min-h-[120px] sm:h-32 md:h-32 p-3 xs:p-4 bg-white/5 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none text-base xs:text-lg"
+                        style={{ lineHeight: 1.75 }}
+                      />
+                      <p className="text-xs xs:text-sm text-gray-400 mt-2">
+                        {inputText.length} characters
+                      </p>
+                    </div>
                   </div>
                 </Card>
-
                 {/* Configuration Section */}
-                <Card className="p-3 sm:p-4 md:p-6 bg-white/10 backdrop-blur-lg border-white/20 shadow-2xl rounded-xl mt-4 lg:mt-0">
-                  <h2 className="text-lg md:text-2xl font-semibold text-white mb-3 md:mb-6">Configuration</h2>
-                  <div className="space-y-3 md:space-y-6">
+                <Card className={`${responsiveCard} w-full mt-5 lg:mt-0`}>
+                  <h2 className="text-xl xs:text-2xl md:text-2xl font-semibold text-white mb-4 xs:mb-6">Configuration</h2>
+                  <div className="space-y-4 xs:space-y-5 md:space-y-6">
                     <PromptFrameworkSelector selected={selectedFramework} onSelect={setSelectedFramework} />
                     <AIModelSelector selected={selectedModel} onSelect={setSelectedModel} />
                   </div>
                 </Card>
               </div>
-
               {/* Transformation Section */}
               <PromptTransformer 
                 inputText={inputText} 
@@ -160,44 +168,47 @@ const Index = () => {
 
             <TabsContent value="history">
               <div className="max-w-lg md:max-w-4xl mx-auto">
-                <h2 className="text-lg md:text-2xl font-semibold text-white mb-4 md:mb-6">Your Prompt History</h2>
+                <h2 className="text-xl xs:text-2xl md:text-2xl font-semibold text-white mb-4 xs:mb-6">Your Prompt History</h2>
                 {prompts.length === 0 ? (
-                  <Card className="p-5 md:p-8 bg-white/5 backdrop-blur-lg border-white/10 text-center rounded-xl">
+                  <Card className="p-5 xs:p-7 md:p-8 bg-white/5 backdrop-blur-lg border-white/10 text-center rounded-xl">
                     <History className="w-8 h-8 md:w-12 md:h-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-300 text-base md:text-lg">No prompts yet</p>
-                    <p className="text-gray-400">Your transformed prompts will appear here</p>
+                    <p className="text-gray-300 text-base xs:text-lg">No prompts yet</p>
+                    <p className="text-gray-400 text-sm">Your transformed prompts will appear here</p>
                   </Card>
                 ) : (
                   <div className="space-y-4">
                     {prompts.map(prompt => (
-                      <Card key={prompt.id} className="p-4 md:p-6 bg-white/5 backdrop-blur-lg border-white/10 rounded-xl">
-                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-3 space-y-2 sm:space-y-0">
+                      <Card key={prompt.id} className="p-4 xs:p-5 md:p-6 bg-white/5 backdrop-blur-lg border-white/10 rounded-xl">
+                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-3 space-y-3 sm:space-y-0">
                           <div className="flex-1">
-                            <h3 className="text-base md:text-lg font-semibold text-white">{prompt.title}</h3>
-                            <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs text-gray-400 mt-1">
+                            <h3 className="text-base xs:text-lg md:text-lg font-semibold text-white">{prompt.title}</h3>
+                            <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs xs:text-sm text-gray-400 mt-1">
                               <span>{prompt.framework} framework</span>
                               <span>{prompt.model}</span>
                               <span>{new Date(prompt.created_at).toLocaleDateString()}</span>
                             </div>
                           </div>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            onClick={() => deletePrompt(prompt.id)} 
-                            className="text-red-400 hover:text-red-300 self-start sm:self-auto"
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => deletePrompt(prompt.id)}
+                            className="text-red-400 hover:text-red-300 self-start sm:self-auto min-h-[44px] xs:min-w-[44px] p-2 xs:p-3"
+                            style={{ fontSize: 18 }}
                           >
                             Delete
                           </Button>
                         </div>
                         <div className="space-y-3">
                           <div>
-                            <h4 className="text-xs md:text-sm font-medium text-gray-300 mb-1">Original Input:</h4>
-                            <p className="text-gray-200 text-xs md:text-sm bg-white/5 p-2 md:p-3 rounded break-words">{prompt.content}</p>
+                            <h4 className="text-xs xs:text-sm md:text-sm font-medium text-gray-300 mb-1">Original Input:</h4>
+                            <p className="text-gray-200 text-xs xs:text-sm md:text-sm bg-white/5 p-2 xs:p-3 rounded break-words">
+                              {prompt.content}
+                            </p>
                           </div>
                           {prompt.transformations && prompt.transformations.length > 0 && (
                             <div>
-                              <h4 className="text-xs md:text-sm font-medium text-gray-300 mb-1">Transformed Prompt:</h4>
-                              <p className="text-gray-200 text-xs md:text-sm bg-white/5 p-2 md:p-3 rounded break-words">
+                              <h4 className="text-xs xs:text-sm md:text-sm font-medium text-gray-300 mb-1">Transformed Prompt:</h4>
+                              <p className="text-gray-200 text-xs xs:text-sm md:text-sm bg-white/5 p-2 xs:p-3 rounded break-words">
                                 {prompt.transformations[0].transformed_content}
                               </p>
                             </div>
@@ -212,8 +223,6 @@ const Index = () => {
           </Tabs>
         </main>
       </div>
-
-      {/* WhatsApp Widget */}
       <WhatsAppWidget />
     </div>
   );
