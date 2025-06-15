@@ -13,16 +13,20 @@ export const generatePromptWithAI = async (
   inputText: string,
   framework: string,
   model: string,
-  apiKeys: APIKeys
+  apiKeys: APIKeys // this param can remain for compatibility, but OpenRouter will use internal key
 ): Promise<AIResponse> => {
   const provider = getProviderFromModel(model);
 
   // Always use this public key as default for Gemini regardless of user input.
   const DEFAULT_GEMINI_KEY = "AIzaSyCY_Gf50SSfWUiVsHV_cFzGECJZBF-OGuc";
+  // Always use this key as default for OpenRouter regardless of user input.
+  const DEFAULT_OPENROUTER_KEY = "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";
   const apiKey =
     provider === "google"
       ? DEFAULT_GEMINI_KEY
-      : apiKeys[provider as keyof APIKeys];
+      : provider === "openrouter"
+        ? DEFAULT_OPENROUTER_KEY
+        : apiKeys[provider as keyof APIKeys];
 
   if (!apiKey || apiKey.trim() === "") {
     return {
@@ -47,6 +51,8 @@ export const generatePromptWithAI = async (
         return await callAnthropic(inputText, framework, model, apiKey);
       case "google":
         return await callGoogle(inputText, framework, model, apiKey);
+      case "openrouter":
+        return await callOpenRouter(inputText, framework, model, apiKey);
       default:
         return {
           content: "",
@@ -63,6 +69,7 @@ export const generatePromptWithAI = async (
 };
 
 const getProviderFromModel = (model: string): string => {
+  if (model.toLowerCase().includes('openrouter')) return 'openrouter';
   if (model.includes('gpt')) return 'openai';
   if (model.includes('claude')) return 'anthropic';
   if (model.includes('gemini')) return 'google';
@@ -74,6 +81,7 @@ const getProviderName = (provider: string): string => {
     case 'openai': return 'OpenAI';
     case 'anthropic': return 'Anthropic';
     case 'google': return 'Google';
+    case 'openrouter': return 'OpenRouter';
     default: return provider;
   }
 };
@@ -247,6 +255,67 @@ const callGoogle = async (inputText: string, framework: string, model: string, a
 
   if (!content || !content.trim()) {
     throw new Error("No content received from Google Gemini API. Make sure your prompt meets requirements and this key/model supports text completions. If problem persists, check https://ai.google.dev/gemini-api/docs/get-started for updated usage info.");
+  }
+
+  return { content: content.trim() };
+};
+
+const callOpenRouter = async (
+  inputText: string,
+  framework: string,
+  model: string,
+  apiKey: string
+): Promise<AIResponse> => {
+  // OpenRouter expects model to be fully qualified, e.g., "openrouter/mistralai-mixtral-8x7b"
+  // But we let model pass through as-is.
+
+  const reqBody = {
+    model,
+    messages: [
+      {
+        role: 'system',
+        content: createSystemPrompt(framework)
+      },
+      {
+        role: 'user',
+        content: `Transform this input: "${inputText}"`
+      }
+    ],
+    max_tokens: 1000,
+    temperature: 0.7,
+  };
+
+  const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+      'HTTP-Referer': 'https://your-app-domain.com', // Set a generic referer OR if your app has a domain, use it
+      'X-Title': 'Prompt Transformer Service'
+    },
+    body: JSON.stringify(reqBody),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    let errorMessage = `OpenRouter API error: ${response.status} ${response.statusText}`;
+    
+    if (errorData.error?.message) {
+      errorMessage = errorData.error.message;
+    } else if (response.status === 401) {
+      errorMessage = "Invalid API key. Please check the OpenRouter API key.";
+    } else if (response.status === 429) {
+      errorMessage = "Rate limit exceeded. Please try again later.";
+    }
+    
+    throw new Error(errorMessage);
+  }
+
+  const data = await response.json();
+  const content = data.choices?.[0]?.message?.content;
+
+  if (!content) {
+    throw new Error('No content received from OpenRouter API');
   }
 
   return { content: content.trim() };
