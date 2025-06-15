@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -29,22 +28,27 @@ const PromptTransformer = ({ inputText, framework, model, apiKeys, onTransformed
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
-  const getModelProvider = (model: string): keyof APIKeys => {
+  // Update getModelProvider for OpenRouter models
+  const getModelProvider = (model: string): keyof APIKeys | "openrouter" => {
+    if (model.toLowerCase().includes('openrouter')) return 'openrouter';
     if (model.includes('gpt')) return 'openai';
     if (model.includes('claude')) return 'anthropic';
     if (model.includes('gemini')) return 'google';
     return 'openai';
   };
 
+  // For OpenRouter models, always allow (no API key required)
   const isAPIKeyConfigured = (): boolean => {
     const provider = getModelProvider(model);
-    const key = apiKeys[provider];
+    // OpenRouter and Gemini always work (public embedded keys)
+    if (provider === 'google' || provider === 'openrouter') return true;
+    const key = apiKeys[provider as keyof APIKeys];
     return !!(key && key.trim() !== '');
   };
 
   const handleTransform = async () => {
     setError(null);
-    
+
     if (!inputText.trim()) {
       setError("Please provide some text or record a voice note first.");
       toast({
@@ -60,9 +64,10 @@ const PromptTransformer = ({ inputText, framework, model, apiKeys, onTransformed
       const providerNames = {
         openai: 'OpenAI',
         anthropic: 'Anthropic',
-        google: 'Google'
+        google: 'Google',
+        openrouter: 'OpenRouter',
       };
-      
+
       setError(`Please configure your ${providerNames[provider]} API key in the API Settings tab.`);
       toast({
         title: "API Key required",
@@ -73,12 +78,12 @@ const PromptTransformer = ({ inputText, framework, model, apiKeys, onTransformed
     }
 
     setIsTransforming(true);
-    
+
     try {
       console.log('Starting prompt transformation...', { model, framework, inputLength: inputText.length });
-      
+
       const result = await generatePromptWithAI(inputText, framework, model, apiKeys);
-      
+
       if (result.error) {
         setError(result.error);
         toast({
@@ -102,7 +107,7 @@ const PromptTransformer = ({ inputText, framework, model, apiKeys, onTransformed
       setTransformedPrompt(result.content);
       onTransformed(result.content);
       setError(null);
-      
+
       toast({
         title: "Prompt transformed!",
         description: `Successfully optimized using ${framework} framework with ${model}.`,
@@ -111,7 +116,7 @@ const PromptTransformer = ({ inputText, framework, model, apiKeys, onTransformed
       const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
       setError(errorMessage);
       console.error('Transform error:', error);
-      
+
       toast({
         title: "Transform failed",
         description: errorMessage,
@@ -174,8 +179,9 @@ const PromptTransformer = ({ inputText, framework, model, apiKeys, onTransformed
             </>
           )}
         </Button>
-        
-        {!isAPIKeyConfigured() && (
+
+        {/* Show API key warning only for providers that require user config (not OpenRouter/Gemini) */}
+        {!isAPIKeyConfigured() && !['openrouter', 'google'].includes(getModelProvider(model)) && (
           <p className="text-sm text-yellow-400 mt-2 flex items-center justify-center">
             <AlertCircle className="w-4 h-4 mr-1" />
             Configure API key for {getModelProvider(model)} in Settings
