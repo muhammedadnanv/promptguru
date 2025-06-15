@@ -1,6 +1,6 @@
 
 import { Link, useLocation } from "react-router-dom";
-import { navigation2 as HomeIcon, navigation as ImagingIcon } from "lucide-react";
+import { Navigation2 as HomeIcon, Navigation as ImagingIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navLinks = [
@@ -50,3 +50,4 @@ const NavigationBar = () => {
 };
 
 export default NavigationBar;
+
