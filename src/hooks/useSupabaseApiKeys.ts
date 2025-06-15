@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -25,8 +24,8 @@ export const useSupabaseApiKeys = () => {
     }
   };
 
-  // Demo Mode: Share API keys globally (no user)
-  const globalId = 'global_public_keys';
+  // Use a valid fixed demo UUID for public/global API keys.
+  const globalId = '00000000-0000-0000-0000-000000000000'; // public demo id
 
   const loadApiKeys = async () => {
     setLoading(true);
