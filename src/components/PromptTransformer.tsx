@@ -5,16 +5,24 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Copy, Wand2, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { transformPrompt } from "../utils/promptFrameworks";
+import { generatePromptWithAI } from "../services/aiService";
+import TextToSpeech from "./TextToSpeech";
+
+interface APIKeys {
+  openai: string;
+  anthropic: string;
+  google: string;
+}
 
 interface PromptTransformerProps {
   inputText: string;
   framework: string;
   model: string;
+  apiKeys: APIKeys;
   onTransformed: (prompt: string) => void;
 }
 
-const PromptTransformer = ({ inputText, framework, model, onTransformed }: PromptTransformerProps) => {
+const PromptTransformer = ({ inputText, framework, model, apiKeys, onTransformed }: PromptTransformerProps) => {
   const [transformedPrompt, setTransformedPrompt] = useState("");
   const [isTransforming, setIsTransforming] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -32,27 +40,35 @@ const PromptTransformer = ({ inputText, framework, model, onTransformed }: Promp
 
     setIsTransforming(true);
     
-    // Simulate API call delay
-    setTimeout(() => {
-      try {
-        const result = transformPrompt(inputText, framework, model);
-        setTransformedPrompt(result);
-        onTransformed(result);
-        setIsTransforming(false);
-        
-        toast({
-          title: "Prompt transformed!",
-          description: `Successfully optimized using ${framework} framework.`,
-        });
-      } catch (error) {
-        setIsTransforming(false);
+    try {
+      const result = await generatePromptWithAI(inputText, framework, model, apiKeys);
+      
+      if (result.error) {
         toast({
           title: "Transform failed",
-          description: "There was an error transforming your prompt. Please try again.",
+          description: result.error,
           variant: "destructive",
         });
+        setIsTransforming(false);
+        return;
       }
-    }, 2000);
+
+      setTransformedPrompt(result.content);
+      onTransformed(result.content);
+      setIsTransforming(false);
+      
+      toast({
+        title: "Prompt transformed!",
+        description: `Successfully optimized using ${framework} framework with ${model}.`,
+      });
+    } catch (error) {
+      setIsTransforming(false);
+      toast({
+        title: "Transform failed",
+        description: "There was an error transforming your prompt. Please check your API keys and try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleCopy = async () => {
@@ -94,7 +110,7 @@ const PromptTransformer = ({ inputText, framework, model, onTransformed }: Promp
           {isTransforming ? (
             <>
               <Wand2 className="w-5 h-5 mr-2 animate-spin" />
-              Transforming...
+              Transforming with AI...
             </>
           ) : (
             <>
@@ -111,7 +127,10 @@ const PromptTransformer = ({ inputText, framework, model, onTransformed }: Promp
           <Card className="p-6 bg-white/5 backdrop-blur-lg border-white/20">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-white">Before</h3>
-              <Badge variant="outline">Casual Input</Badge>
+              <div className="flex items-center space-x-2">
+                <Badge variant="outline">Casual Input</Badge>
+                <TextToSpeech text={inputText} />
+              </div>
             </div>
             <div className="bg-white/5 rounded-lg p-4 min-h-[200px]">
               <p className="text-gray-300 leading-relaxed">
@@ -129,6 +148,7 @@ const PromptTransformer = ({ inputText, framework, model, onTransformed }: Promp
                   {framework} Framework
                 </Badge>
                 <Badge variant="outline">{model}</Badge>
+                {transformedPrompt && <TextToSpeech text={transformedPrompt} />}
               </div>
             </div>
             
@@ -157,7 +177,7 @@ const PromptTransformer = ({ inputText, framework, model, onTransformed }: Promp
                 </>
               ) : (
                 <p className="text-gray-500 italic">
-                  Your optimized prompt will appear here...
+                  Your AI-optimized prompt will appear here...
                 </p>
               )}
             </div>

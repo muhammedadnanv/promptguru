@@ -19,8 +19,14 @@ const models: AIModel[] = [
     badge: "Popular"
   },
   {
+    id: "gpt-3.5-turbo",
+    name: "GPT-3.5 Turbo",
+    provider: "OpenAI",
+    strengths: ["Speed", "Cost", "General"]
+  },
+  {
     id: "claude-3",
-    name: "Claude 3",
+    name: "Claude 3 Sonnet",
     provider: "Anthropic",
     strengths: ["Writing", "Safety", "Long Context"],
     badge: "Recommended"
@@ -30,12 +36,6 @@ const models: AIModel[] = [
     name: "Gemini Pro",
     provider: "Google",
     strengths: ["Multimodal", "Speed", "Integration"]
-  },
-  {
-    id: "gpt-3.5",
-    name: "GPT-3.5",
-    provider: "OpenAI",
-    strengths: ["Speed", "Cost", "General"]
   }
 ];
 
