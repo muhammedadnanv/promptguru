@@ -1,4 +1,3 @@
-
 import { Link } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,7 +12,8 @@ import {
   Brain, 
   MessageSquare,
   Code,
-  Wand2
+  Wand2,
+  CreditCard
 } from "lucide-react";
 import Header from "@/components/Header";
 
@@ -25,6 +25,13 @@ const Home = () => {
           <div className="flex flex-col md:flex-row justify-between items-center mb-4 md:mb-8 gap-4 xs:gap-5">
             <Header />
             <div className="flex gap-3">
+              <Link
+                to="/payment"
+                className="inline-flex items-center px-4 py-3 sm:px-4 sm:py-2 rounded-xl bg-green-600/80 hover:bg-green-700 text-white font-semibold shadow transition text-base md:text-base"
+              >
+                <CreditCard className="w-5 h-5 mr-2" />
+                <span className="hidden xs:inline">Pay Now</span>
+              </Link>
               <Link
                 to="/imaging"
                 className="inline-flex items-center px-4 py-3 sm:px-4 sm:py-2 rounded-xl bg-purple-600/80 hover:bg-purple-700 text-white font-semibold shadow transition text-base md:text-base"
@@ -175,12 +182,20 @@ const Home = () => {
               <p className="text-lg text-gray-300 mb-8 max-w-2xl mx-auto">
                 Join thousands of users who are getting better AI results with optimized prompts.
               </p>
-              <Link to="/workspace">
-                <Button size="lg" className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-8 py-4 text-lg">
-                  Start Your Journey
-                  <ArrowRight className="w-5 h-5 ml-2" />
-                </Button>
-              </Link>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Link to="/workspace">
+                  <Button size="lg" className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-8 py-4 text-lg">
+                    Start Your Journey
+                    <ArrowRight className="w-5 h-5 ml-2" />
+                  </Button>
+                </Link>
+                <Link to="/payment">
+                  <Button size="lg" variant="outline" className="border-white/20 text-white hover:bg-white/10 px-8 py-4 text-lg">
+                    Upgrade to Premium
+                    <CreditCard className="w-5 h-5 ml-2" />
+                  </Button>
+                </Link>
+              </div>
             </Card>
           </div>
         </main>

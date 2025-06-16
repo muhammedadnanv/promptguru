@@ -6,6 +6,7 @@ import Home from '@/pages/Home';
 import Workspace from '@/pages/Workspace';
 import NotFound from '@/pages/NotFound';
 import Imaging from '@/pages/Imaging';
+import Payment from '@/pages/Payment';
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/workspace" element={<Workspace />} />
           <Route path="/imaging" element={<Imaging />} />
+          <Route path="/payment" element={<Payment />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
         <Toaster />
